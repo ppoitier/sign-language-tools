@@ -3,6 +3,7 @@ from .video import Video
 from .images import Images
 from .skeleton import Skeleton
 from .annotations import Annotations
+from ...landmark.edges import HAND_CONNECTIONS, POSE_CONNECTIONS, FACEMESH_CONTOURS
 from typing import Optional, Literal
 import numpy as np
 import pandas as pd
@@ -48,29 +49,44 @@ class VideoPlayer:
         self.frame_count = self.video.frame_count
         self.fps = fps
 
-    def attach_landmarks(self, name: str, landmarks: np.ndarray, connections=None):
-        self._add_landmarks(name, landmarks, connections)
+    def attach_landmarks(self, name: str, landmarks: np.ndarray, connections=None, show_vertices=True):
+        self._add_landmarks(name, landmarks, connections, show_vertices)
 
-    # def attach_pose(self, pose: np.ndarray):
-    #     self._add_landmarks(pose, 'pose')
-    #
-    # def attach_pose_from_csv(self, csv_path: str):
-    #     pose = pd.read_csv(self._get_path(csv_path)).values
-    #     self.attach_pose(pose)
-    #
-    # def attach_hands(self, hands: np.ndarray):
-    #     self._add_landmarks(hands, 'hands')
-    #
-    # def attach_hands_from_csv(self, csv_path: str):
-    #     hands = pd.read_csv(self._get_path(csv_path)).values
-    #     self.attach_hands(hands)
-    #
-    # def attach_face(self, face: np.ndarray, mesh: bool = False):
-    #     self._add_landmarks(face, 'face', mesh=mesh)
-    #
-    # def attach_face_from_csv(self, csv_path: str, mesh: bool = False):
-    #     face = pd.read_csv(self._get_path(csv_path)).values
-    #     self.attach_face(face, mesh)
+    def attach_pose(self, pose: np.ndarray):
+        self.attach_landmarks('pose', pose, POSE_CONNECTIONS)
+
+    def attach_pose_from_csv(self, csv_path: str):
+        pose = pd.read_csv(self._get_path(csv_path)).values
+        self.attach_pose(pose)
+
+    def attach_hand(self, landmarks: np.ndarray, hand: str):
+        self.attach_landmarks(f'{hand}_hand', landmarks, HAND_CONNECTIONS)
+
+    def attach_hand_from_csv(self, csv_path: str, hand: str):
+        landmarks = pd.read_csv(self._get_path(csv_path)).values
+        self.attach_hand(landmarks, hand)
+
+    def attach_hands(self, hands: np.ndarray):
+        if len(hands.shape) == 2:
+            left = hands[:, :42]
+            right = hands[:, 42:]
+        else:
+            left = hands[:, :21]
+            right = hands[:, 21:]
+        self.attach_hand(left, 'left')
+        self.attach_hand(right, 'right')
+
+    def attach_hands_from_csv(self, csv_path: str):
+        hands = pd.read_csv(self._get_path(csv_path)).values
+        self.attach_hands(hands)
+
+    def attach_face(self, face: np.ndarray, mesh: bool = False):
+        # TODO : add mesh
+        self.attach_landmarks('face', face, FACEMESH_CONTOURS, show_vertices=False)
+
+    def attach_face_from_csv(self, csv_path: str, mesh: bool = False):
+        face = pd.read_csv(self._get_path(csv_path)).values
+        self.attach_face(face, mesh)
 
     def attach_annotations_from_csv(self, csv_path: str, *args, **kwargs):
         annots = pd.read_csv(self._get_path(csv_path)).iloc[:, [0, 1, 2]]
@@ -188,11 +204,10 @@ class VideoPlayer:
             cv2.imwrite(filepath, frame)
             print('Saved:', filepath)
 
-    def _add_landmarks(self, name: str, landmarks: np.ndarray, connections):
+    def _add_landmarks(self, name: str, landmarks: np.ndarray, connections, show_vertices: bool):
         if self.skeleton is None:
             self.skeleton = Skeleton(mesh=False, resolution=self.resolution)
-
-        self.skeleton.add_landmarks(name, landmarks, connections)
+        self.skeleton.add_landmarks(name, landmarks, connections, show_vertices)
 
         landmarks_count = self.skeleton.n_poses
         if self.video is not None:
