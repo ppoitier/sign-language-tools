@@ -17,6 +17,7 @@ class VideoPlayer:
     Parameters:
     ----------
         root: str, optional
+            Root path of the dataset 
     
     """
     def __init__(
