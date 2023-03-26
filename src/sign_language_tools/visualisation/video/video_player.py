@@ -11,7 +11,14 @@ import os
 
 
 class VideoPlayer:
+    """
+    Return a video player
 
+    Parameters:
+    ----------
+        root: str, optional
+    
+    """
     def __init__(
             self,
             root: Optional[str] = None,
