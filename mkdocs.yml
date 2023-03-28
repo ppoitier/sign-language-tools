@@ -6,8 +6,7 @@ theme:
     primary: cyan
 
 plugins:
-  - mkdocstrings:
-        docstring_style: numpy
+  - mkdocstrings
 
 
 nav:

@@ -11,14 +11,10 @@ import os
 
 
 class VideoPlayer:
-    """
-    Return a video player
+    """Video player able to display video with annotations or landmarks information.
 
-    Parameters:
-    ----------
-        root: str, optional
-            Root path of the dataset 
-    
+    The video player is a versatile video player that allows to visualise sign language landmarks in mediapipe format
+    along with a video stream and annotations.
     """
     def __init__(
             self,
@@ -26,6 +22,13 @@ class VideoPlayer:
             screenshot_dir: Optional[str] = None,
             fps: int = 24,
     ):
+        """Creation of a new video player
+
+        Args:
+            root: An optional root path prepended to all.
+            screenshot_dir: Path of the folder in which screenshot should be saved.
+            fps: The framerate of the information to display.
+        """
         self.resolution = (756, 512)
         self.current_frame = 0
         self.frame_count = 0
@@ -47,12 +50,32 @@ class VideoPlayer:
         self.crop = (0.0, 1.0, 0.0, 1.0)
 
     def attach_video(self, video_path: str):
+        """Attach a video file to the video player
+
+        Only one video could be attached to a video player. The player use
+        `opencv-python` to render the video.
+
+        Args:
+            video_path: The path of the video file to attach.
+
+        """
+
         self.video = Video(self._get_path(video_path))
         self.resolution = (self.video.width, self.video.height)
         self.frame_count = self.video.frame_count
         self.fps = self.video.fps
 
     def attach_image_dir(self, dir_path: str, extension: str = 'png', fps: int = 25):
+        """Attach an image folder to the video player.
+
+        The images in the folder are used as video frame in the video player. The images are
+        displayed in alphabetical order.
+
+        Args:
+            dir_path: The path of the folder containing the images.
+            extension: The images extensions
+            fps: THe framerate of the video to display.
+        """
         self.video = Images(self._get_path(dir_path), extension=extension)
         self.frame_count = self.video.frame_count
         self.fps = fps
