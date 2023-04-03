@@ -11,13 +11,24 @@ import os
 
 
 class VideoPlayer:
+    """Video player able to display video with annotations or landmarks information.
 
+    The video player is a versatile video player that allows to visualise sign language landmarks in mediapipe format
+    along with a video stream and annotations.
+    """
     def __init__(
             self,
             root: Optional[str] = None,
             screenshot_dir: Optional[str] = None,
             fps: int = 24,
     ):
+        """Creation of a new video player
+
+        Args:
+            root: An optional root path prepended to all.
+            screenshot_dir: An optional folder path in which screenshot should be saved.
+            fps: The framerate of the information to display (default = 24).
+        """
         self.resolution = (756, 512)
         self.current_frame = 0
         self.frame_count = 0
@@ -39,23 +50,88 @@ class VideoPlayer:
         self.crop = (0.0, 1.0, 0.0, 1.0)
 
     def attach_video(self, video_path: str):
+        """Attach a video file to the video player
+
+        Only one video could be attached to a video player. The player use
+        `opencv-python` to render the video.
+
+        Args:
+            video_path: The path of the video file to attach.
+        """
+
         self.video = Video(self._get_path(video_path))
         self.resolution = (self.video.width, self.video.height)
         self.frame_count = self.video.frame_count
         self.fps = self.video.fps
 
     def attach_image_dir(self, dir_path: str, extension: str = 'png', fps: int = 25):
+        """Attach an image folder to the video player.
+
+        The images in the folder are used as video frame in the video player. The images are
+        displayed in alphabetical order.
+
+        Only one video could be attached to a video player. The player use
+        `opencv-python` to render the video.
+
+        Args:
+            dir_path: The path of the folder containing the images.
+            extension: The file extension of the images (default = 'png').
+            fps: The framerate of the video to display.
+        """
         self.video = Images(self._get_path(dir_path), extension=extension)
         self.frame_count = self.video.frame_count
         self.fps = fps
 
     def attach_landmarks(self, name: str, landmarks: np.ndarray, connections=None, show_vertices=True):
+        """Attach a set of landmarks to the video player.
+
+        Each set of landmark is identified by its name.
+        The video player is able to display multiple sets of landmarks in the same video.
+
+        Args:
+            name: The name of the set of landmarks.
+            landmarks: The tensor containing the signal values of each landmark.
+            connections: An optional set of connections between the landmarks (default = None).
+            show_vertices: If `True`, the vertices of the landmarks are displayed.
+                Otherwise, they are hidden (default = `True`).
+
+        Shape:
+            landmarks: of the shape (T, N, D) where T is the number of frames, N the number of landmarks (vertices)
+            and D the dimension of each coordinate (only the two first coordinates are shown).
+
+        Author:
+            ppoitier (v1 01.04.2023)
+        """
         self._add_landmarks(name, landmarks, connections, show_vertices)
 
     def attach_pose(self, pose: np.ndarray):
+        """Attach pose landmarks of MediaPipe to the video player along with the corresponding edges.
+
+        Be careful that this method overrides the set of landmarks called `pose`.
+
+        Args:
+            pose: The tensor containing the signal values of the pose landmarks.
+
+        Shape:
+            landmarks: of the shape (T, N, D) where T is the number of frames, N the number of landmarks (vertices)
+            and D the dimension of each coordinate (only the two first coordinates are shown).
+
+        Author:
+            ppoitier (v1 01.04.2023)
+        """
         self.attach_landmarks('pose', pose, POSE_CONNECTIONS)
 
     def attach_pose_from_csv(self, csv_path: str):
+        """Attach pose landmarks of MediaPipe to the video player along with the corresponding edges.
+
+        Be careful that this method overrides the set of landmarks called `pose`.
+
+        Args:
+            csv_path: Path of the CSV file containing the coordinates of the signal values of the pose landmarks.
+
+        Author:
+            ppoitier (v1 01.04.2023)
+        """
         pose = pd.read_csv(self._get_path(csv_path)).values
         self.attach_pose(pose)
 
@@ -97,6 +173,15 @@ class VideoPlayer:
         self.annotations.append(Annotations(annots, name, fps=self.fps, unit=unit))
 
     def set_crop(self, x: tuple[float, float] = (0, 1), y: tuple[float, float] = (0, 1)):
+        """Crop the viewport of the video player.
+
+        Args:
+            x: The relative x-axis range (start, end) to use. Example: `x=(0.4, 0.7)`.
+            y: The relative y-axis range (start, end) to use. Example: `y=(0.2, 0.5)`.
+
+        Author:
+            ppoitier (v1 01.04.2023)
+        """
         assert 0 <= x[0] <= 1
         assert 0 <= x[1] <= 1
         assert 0 <= y[0] <= 1
@@ -104,16 +189,46 @@ class VideoPlayer:
         self.crop = (x[0], x[1], y[0], y[1])
 
     def isolate(self, element: Literal['video', 'skeleton']):
+        """Isolate an element out of the main window, into a new window.
+
+        Args:
+            element: The element that is isolated:
+                - `video` to isolate the original video.
+                - `skeleton` to isolate the landmarks.
+
+        Author:
+            ppoitier (v1 01.04.2023)
+        """
         if element == 'video':
             self.isolate_video = True
         elif element == 'skeleton':
             self.isolate_skeleton = True
 
     def set_speed(self, new_speed: float):
+        """Change the playback speed of the video player.
+
+        Example:
+            ```
+            set_speed(2.0)  # Double the original playback speed of the video player
+            ```
+
+        Args:
+            new_speed: New relative playback speed (must be positive)
+
+        Author:
+            ppoitier (v1 01.04.2023)
+        """
         assert 0 < new_speed, 'Speed must be positive.'
         self.speed = new_speed
 
     def play(self):
+        """Start the video player and display all the attached elements.
+
+        The player use `opencv-python` to render the video.
+
+        Author:
+            ppoitier (v1 01.04.2023)
+        """
         self.current_frame = 0
         frame_duration = round(1000/self.fps)
         delay = round(frame_duration / self.speed)
@@ -127,6 +242,8 @@ class VideoPlayer:
             self._user_action(key_code)
 
         self._stop()
+
+    # ---- Private methods
 
     def _next_frame(self, frame_nb: int):
         self.last_images = {}

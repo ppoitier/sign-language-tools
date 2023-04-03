@@ -1,17 +1,6 @@
-# Welcome to MkDocs
+# Sign Language Tools 👋
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+This repository provides several tools facilitating the manipulation of sign language datasets. It was first developped by the authors of the [LSFB dataset](https://lsfb.info.unamur.be/) and then extended to other dataset using videos, gloss annotation and mediapipe landmarks to ease the setup of our ML pipeline.
 
-## Commands
-
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
-
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+This project provides:
+- A `VideoPlayer` facilitating the 
