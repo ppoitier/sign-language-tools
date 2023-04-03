@@ -1,4 +1,4 @@
-from ....landmark.edges import (
+from sign_language_tools.features.landmarks.edges import (
     FULL_BODY_POSE_CONNECTIONS,
     HAND_CONNECTIONS,
     FACEMESH_CONTOURS,
