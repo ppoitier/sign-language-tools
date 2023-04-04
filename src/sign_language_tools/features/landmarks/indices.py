@@ -6,5 +6,6 @@ FACE_LIPS_INDICES = [
     78,  191,  80,  81, 82,  13, 312, 311, 310, 415,
     95,   88, 178,  87, 14, 317, 402, 318, 324, 308,
 ]
+LIPS_INDICES = range(40)
 HAND_INDICES = range(21)
 POSE_INDICES = range(33)

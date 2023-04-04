@@ -33,13 +33,24 @@ def get_landmark_interpolation_function(landmarks: np.ndarray, method: str = 'li
     t = landmarks.shape[0]
     x = np.argwhere(~np.isnan(landmarks.reshape(t, -1)).any(axis=1)).reshape(-1)
     y = landmarks[x]
+
+    if len(y) < 2:
+        method = 'nearest'
+
     return interp1d(
         x,
         y,
         kind=method,
         axis=0,
         assume_sorted=True,
+        bounds_error=False,
+        fill_value='extrapolate',
     )
+
+
+def fill_empty_landmark_sequences(landmarks: np.ndarray, fill_values: float):
+    landmarks[:, np.isnan(landmarks).all(axis=0).all(axis=1), :] = fill_values
+    return landmarks
 
 
 def interpolate_missing_landmarks(landmarks: np.ndarray, method: str = 'linear') -> np.ndarray:

@@ -2,7 +2,7 @@ from sign_language_tools.features.landmarks.edges.facemesh import (
     FACEMESH_CONTOURS,
     FACEMESH_TESSELATION,
 )
-from sign_language_tools.features.landmarks.edges.relative import (
+from sign_language_tools.features.landmarks.edges.base import (
     POSE_EDGES,
     HAND_EDGES,
 )

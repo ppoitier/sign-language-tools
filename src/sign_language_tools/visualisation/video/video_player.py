@@ -3,7 +3,7 @@ from .video import Video
 from .images import Images
 from .skeleton import Skeleton
 from .annotations import Annotations
-from sign_language_tools.features.landmarks.edges.relative import HAND_EDGES, POSE_EDGES
+from sign_language_tools.features.landmarks.edges.base import HAND_EDGES, POSE_EDGES
 from sign_language_tools.features.landmarks.edges.facemesh import FACEMESH_CONTOURS
 from typing import Optional, Literal
 import numpy as np
