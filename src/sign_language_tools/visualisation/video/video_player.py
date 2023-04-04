@@ -3,7 +3,8 @@ from .video import Video
 from .images import Images
 from .skeleton import Skeleton
 from .annotations import Annotations
-from sign_language_tools.features.landmarks.edges import HAND_CONNECTIONS, POSE_CONNECTIONS, FACEMESH_CONTOURS
+from sign_language_tools.features.landmarks.edges.relative import HAND_EDGES, POSE_EDGES
+from sign_language_tools.features.landmarks.edges.facemesh import FACEMESH_CONTOURS
 from typing import Optional, Literal
 import numpy as np
 import pandas as pd
@@ -119,7 +120,7 @@ class VideoPlayer:
         Author:
             ppoitier (v1 01.04.2023)
         """
-        self.attach_landmarks('pose', pose, POSE_CONNECTIONS)
+        self.attach_landmarks('pose', pose, POSE_EDGES)
 
     def attach_pose_from_csv(self, csv_path: str):
         """Attach pose landmarks of MediaPipe to the video player along with the corresponding edges.
@@ -136,7 +137,7 @@ class VideoPlayer:
         self.attach_pose(pose)
 
     def attach_hand(self, landmarks: np.ndarray, hand: str):
-        self.attach_landmarks(f'{hand}_hand', landmarks, HAND_CONNECTIONS)
+        self.attach_landmarks(f'{hand}_hand', landmarks, HAND_EDGES)
 
     def attach_hand_from_csv(self, csv_path: str, hand: str):
         landmarks = pd.read_csv(self._get_path(csv_path)).values

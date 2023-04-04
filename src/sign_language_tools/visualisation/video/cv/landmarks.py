@@ -1,10 +1,12 @@
-from sign_language_tools.features.landmarks.edges import (
-    FULL_BODY_POSE_CONNECTIONS,
-    HAND_CONNECTIONS,
+from sign_language_tools.features.landmarks.edges.facemesh import (
     FACEMESH_CONTOURS,
     FACEMESH_TESSELATION,
 )
-from .utils import draw_connections, draw_points
+from sign_language_tools.features.landmarks.edges.relative import (
+    POSE_EDGES,
+    HAND_EDGES,
+)
+from sign_language_tools.visualisation.video.cv.utils import draw_connections, draw_points
 
 
 def draw_landmarks(
@@ -22,7 +24,7 @@ def draw_landmarks(
 
 
 def draw_pose_landmarks(img, positions):
-    draw_connections(img, positions, FULL_BODY_POSE_CONNECTIONS, color=(0, 255, 0))
+    draw_connections(img, positions, POSE_EDGES, color=(0, 255, 0))
     draw_points(img, positions)
 
 
@@ -32,7 +34,7 @@ def draw_hands_landmarks(img, positions):
 
 
 def draw_hand_landmarks(img, positions, color=(0, 0, 255)):
-    draw_connections(img, positions, HAND_CONNECTIONS, color)
+    draw_connections(img, positions, HAND_EDGES, color)
 
 
 def draw_face_landmarks(img, positions, color=(0, 255, 0)):

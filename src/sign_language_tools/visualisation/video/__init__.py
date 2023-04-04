@@ -3,4 +3,4 @@ __all__ = [
     'VideoPlayer',
 ]
 
-from video_player import VideoPlayer
+from sign_language_tools.visualisation.video.video_player import VideoPlayer
