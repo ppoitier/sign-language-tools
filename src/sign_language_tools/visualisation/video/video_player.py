@@ -1,14 +1,14 @@
-import cv2
-from .video import Video
-from .images import Images
-from .skeleton import Skeleton
-from .annotations import Annotations
-from sign_language_tools.features.landmarks.edges.base import HAND_EDGES, POSE_EDGES
-from sign_language_tools.features.landmarks.edges.facemesh import FACEMESH_CONTOURS
+import os
 from typing import Optional, Literal
+
+import cv2
 import numpy as np
 import pandas as pd
-import os
+
+from sign_language_tools.visualisation.video.video import Video
+from sign_language_tools.visualisation.video.images import Images
+from sign_language_tools.visualisation.video.poses import Poses
+from sign_language_tools.visualisation.video.segments import Segments
 
 
 class VideoPlayer:
@@ -39,15 +39,15 @@ class VideoPlayer:
         self.root = root
         self.screenshot_dir = screenshot_dir
         self.video: Optional[Video | Images] = None
-        self.skeleton: Optional[Skeleton] = None
-        self.annotations: list[Annotations] = []
+        self.poses: Optional[Poses] = None
+        self.segmentations: list[Segments] = []
 
         self.stop = False
         self.pause = False
         self.last_images = {}
 
         self.isolate_video = False
-        self.isolate_skeleton = False
+        self.isolate_pose = False
         self.crop = (0.0, 1.0, 0.0, 1.0)
 
     def attach_video(self, video_path: str):
@@ -83,7 +83,15 @@ class VideoPlayer:
         self.frame_count = self.video.frame_count
         self.fps = fps
 
-    def attach_landmarks(self, name: str, landmarks: np.ndarray, connections=None, show_vertices=True):
+    def attach_pose(
+            self,
+            name: str,
+            pose_sequence: np.ndarray,
+            connections=None,
+            show_vertices: bool = True,
+            vertex_color=(0, 0, 255),
+            edge_color=(0, 255, 0),
+    ):
         """Attach a set of landmarks to the video player.
 
         Each set of landmark is identified by its name.
@@ -91,10 +99,12 @@ class VideoPlayer:
 
         Args:
             name: The name of the set of landmarks.
-            landmarks: The tensor containing the signal values of each landmark.
+            pose_sequence: The tensor containing the signal values of each landmark.
             connections: An optional set of connections between the landmarks (default = None).
             show_vertices: If `True`, the vertices of the landmarks are displayed.
                 Otherwise, they are hidden (default = `True`).
+            vertex_color: The color of each vertex in the BGR format (0 <= color <= 255).
+            edge_color: The color of each edge in the BGR format (0 <= color <= 255).
 
         Shape:
             landmarks: of the shape (T, N, D) where T is the number of frames, N the number of landmarks (vertices)
@@ -103,75 +113,16 @@ class VideoPlayer:
         Author:
             ppoitier (v1 01.04.2023)
         """
-        self._add_landmarks(name, landmarks, connections, show_vertices)
+        self._add_pose(name, pose_sequence, connections, show_vertices, vertex_color, edge_color)
 
-    def attach_pose(self, pose: np.ndarray):
-        """Attach pose landmarks of MediaPipe to the video player along with the corresponding edges.
-
-        Be careful that this method overrides the set of landmarks called `pose`.
-
-        Args:
-            pose: The tensor containing the signal values of the pose landmarks.
-
-        Shape:
-            landmarks: of the shape (T, N, D) where T is the number of frames, N the number of landmarks (vertices)
-            and D the dimension of each coordinate (only the two first coordinates are shown).
-
-        Author:
-            ppoitier (v1 01.04.2023)
-        """
-        self.attach_landmarks('pose', pose, POSE_EDGES)
-
-    def attach_pose_from_csv(self, csv_path: str):
-        """Attach pose landmarks of MediaPipe to the video player along with the corresponding edges.
-
-        Be careful that this method overrides the set of landmarks called `pose`.
-
-        Args:
-            csv_path: Path of the CSV file containing the coordinates of the signal values of the pose landmarks.
-
-        Author:
-            ppoitier (v1 01.04.2023)
-        """
-        pose = pd.read_csv(self._get_path(csv_path)).values
-        self.attach_pose(pose)
-
-    def attach_hand(self, landmarks: np.ndarray, hand: str):
-        self.attach_landmarks(f'{hand}_hand', landmarks, HAND_EDGES)
-
-    def attach_hand_from_csv(self, csv_path: str, hand: str):
-        landmarks = pd.read_csv(self._get_path(csv_path)).values
-        self.attach_hand(landmarks, hand)
-
-    def attach_hands(self, hands: np.ndarray):
-        if len(hands.shape) == 2:
-            left = hands[:, :42]
-            right = hands[:, 42:]
-        else:
-            left = hands[:, :21]
-            right = hands[:, 21:]
-        self.attach_hand(left, 'left')
-        self.attach_hand(right, 'right')
-
-    def attach_hands_from_csv(self, csv_path: str):
-        hands = pd.read_csv(self._get_path(csv_path)).values
-        self.attach_hands(hands)
-
-    def attach_face(self, face: np.ndarray, mesh: bool = False):
-        # TODO : add mesh
-        self.attach_landmarks('face', face, FACEMESH_CONTOURS, show_vertices=False)
-
-    def attach_face_from_csv(self, csv_path: str, mesh: bool = False):
-        face = pd.read_csv(self._get_path(csv_path)).values
-        self.attach_face(face, mesh)
-
-    def attach_annotations_from_csv(self, csv_path: str, *args, **kwargs):
-        annots = pd.read_csv(self._get_path(csv_path)).iloc[:, [0, 1, 2]]
-        annots.columns = ['start', 'end', 'label']
-        self.attach_annotations(annots, *args, **kwargs)
-
-    def attach_annotations(self, annots: pd.DataFrame, name: str, unit: str = 'ms'):
-        self.annotations.append(Annotations(annots, name, fps=self.fps, unit=unit))
+    def attach_segments(self, name: str, segments: pd.DataFrame | np.ndarray, unit: str = 'ms'):
+        if isinstance(segments, np.ndarray):
+            segments = pd.DataFrame({
+                'start': pd.Series(segments[:, 0], dtype='int32'),
+                'end': pd.Series(segments[:, 1], dtype='int32'),
+                'label': pd.Series(segments[:, 2]),
+            })
+        self.segmentations.append(Segments(segments, name, fps=self.fps, unit=unit))
 
     def set_crop(self, x: tuple[float, float] = (0, 1), y: tuple[float, float] = (0, 1)):
         """Crop the viewport of the video player.
@@ -189,21 +140,21 @@ class VideoPlayer:
         assert 0 <= y[1] <= 1
         self.crop = (x[0], x[1], y[0], y[1])
 
-    def isolate(self, element: Literal['video', 'skeleton']):
+    def isolate(self, element: Literal['video', 'pose']):
         """Isolate an element out of the main window, into a new window.
 
         Args:
             element: The element that is isolated:
                 - `video` to isolate the original video.
-                - `skeleton` to isolate the landmarks.
+                - `pose` to isolate the landmarks.
 
         Author:
             ppoitier (v1 01.04.2023)
         """
         if element == 'video':
             self.isolate_video = True
-        elif element == 'skeleton':
-            self.isolate_skeleton = True
+        elif element == 'pose':
+            self.isolate_pose = True
 
     def set_speed(self, new_speed: float):
         """Change the playback speed of the video player.
@@ -253,19 +204,19 @@ class VideoPlayer:
             if self.isolate_video:
                 self._show_frame('Video (isolated)', img.copy(), frame_nb)
 
-            if self.skeleton is not None:
-                self.skeleton.draw(img, frame_nb)
-                if self.isolate_skeleton:
-                    self._show_frame('Skeleton (isolated)', self.skeleton.get_img(frame_nb), frame_nb)
-        elif self.skeleton is not None:
-            img = self.skeleton.get_img(frame_nb)
+            if self.poses is not None:
+                self.poses.draw(img, frame_nb)
+                if self.isolate_pose:
+                    self._show_frame('Skeleton (isolated)', self.poses.get_img(frame_nb), frame_nb)
+        elif self.poses is not None:
+            img = self.poses.get_img(frame_nb)
         else:
             img = np.zeros((512, 756, 3), dtype='uint8')
 
         self._show_frame('Video Player', img, frame_nb)
 
-        for annot in self.annotations:
-            cv2.imshow(annot.name, annot.get_img(frame_nb))
+        for segments in self.segmentations:
+            cv2.imshow(segments.name, segments.get_img(frame_nb))
 
     def _show_frame(self, window_title: str, frame: np.ndarray, frame_nb: int):
         if self.crop is not None:
@@ -281,15 +232,19 @@ class VideoPlayer:
     def _user_action(self, key_code):
         if key_code == ord('q'):
             self._stop()
-        if key_code == ord('s'):
+        elif key_code == ord('s'):
             self._screenshot()
-        elif key_code == 27:        # Escape
+        # Escape
+        elif key_code == 27:
             self._stop()
-        elif key_code == 2424832:   # Left arrow
+        # Left arrow
+        elif key_code == 65361 or key_code == 2424832:
             self._goto(self.current_frame - self.fps * 10)
-        elif key_code == 2555904:   # Right arrow
+        # Right arrow
+        elif key_code == 65363 or key_code == 2555904:
             self._goto(self.current_frame + self.fps * 10)
-        elif key_code == 32:        # Space bar
+        # Space bar
+        elif key_code == 32:
             self.pause = not self.pause
 
     def _goto(self, frame_nb: int):
@@ -322,17 +277,25 @@ class VideoPlayer:
             cv2.imwrite(filepath, frame)
             print('Saved:', filepath)
 
-    def _add_landmarks(self, name: str, landmarks: np.ndarray, connections, show_vertices: bool):
-        if self.skeleton is None:
-            self.skeleton = Skeleton(mesh=False, resolution=self.resolution)
-        self.skeleton.add_landmarks(name, landmarks, connections, show_vertices)
+    def _add_pose(
+            self,
+            name: str,
+            landmarks: np.ndarray,
+            connections,
+            show_vertices: bool,
+            vertex_color: tuple[int, int, int],
+            edge_color: tuple[int, int, int],
+    ):
+        if self.poses is None:
+            self.poses = Poses(resolution=self.resolution)
+        self.poses.add_pose(name, landmarks, connections, show_vertices, vertex_color, edge_color)
 
-        landmarks_count = self.skeleton.n_poses
+        n_poses = self.poses.n_poses
         if self.video is not None:
-            assert self.frame_count == landmarks_count, \
-                f'Different number of frames ({self.frame_count}) and landmarks ({landmarks_count}).'
+            assert self.frame_count == n_poses, \
+                f'Different number of frames ({self.frame_count}) and poses ({n_poses}).'
         else:
-            self.frame_count = landmarks_count
+            self.frame_count = n_poses
 
     def _get_path(self, path: str):
         if self.root is not None:

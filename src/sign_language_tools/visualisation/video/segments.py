@@ -1,22 +1,19 @@
 import numpy as np
 import pandas as pd
-from .displayable import Displayable
-from .cv.annotations import draw_annotations
+from sign_language_tools.visualisation.video.displayable import Displayable
+from sign_language_tools.visualisation.video.cv.annotations import draw_segments
 
 
-def get_annots_in_range(annots: pd.DataFrame, full_range: tuple[int, int]) -> pd.DataFrame:
-    return annots.loc[
-        ((annots['start'] >= full_range[0]) & (annots['start'] <= full_range[1])) |
-        ((annots['end'] >= full_range[0]) & (annots['end'] <= full_range[1])) |
-        ((annots['start'] <= full_range[0]) & (annots['end'] >= full_range[1]))
-    ]
+def get_segments_in_range(segments: pd.DataFrame, full_range: tuple[int, int]) -> pd.DataFrame:
+    start, end = full_range
+    return segments.loc[(segments['start'] <= end) & (segments['end'] >= start)]
 
 
-class Annotations(Displayable):
+class Segments(Displayable):
 
     def __init__(
             self,
-            annots: pd.DataFrame,
+            segments: pd.DataFrame,
             name: str,
             unit: str,
             resolution: tuple[int, int] = (512, 256),
@@ -25,7 +22,7 @@ class Annotations(Displayable):
     ):
         self.name = name
 
-        self.annots = annots
+        self.segments = segments.copy()
         self.resolution = resolution
         self.offset = resolution[0]//2
         self.time_range = time_range
@@ -35,27 +32,21 @@ class Annotations(Displayable):
         self.frame_px = self.offset/self.frame_offset
 
         self.panel = None
-        self.panel_nb = 0
-
+        self.panel_nb = -1
         self.unit = unit
 
         if self.unit == 'ms':
-            self.annots.loc[:, ['start', 'end']] //= self.frame_duration
-
+            self.segments.loc[:, ['start', 'end']] //= self.frame_duration
         self._load_panel(0)
 
     def get_img(self, frame_number: int) -> np.ndarray:
         panel_nb = frame_number // self.frame_offset
         if panel_nb != self.panel_nb:
             self._load_panel(frame_number)
-
         img = np.zeros((self.resolution[1], self.resolution[0], 3), dtype='uint8')
-
         frame_offset = frame_number % self.frame_offset
         px_offset = round(frame_offset * self.frame_px)
-
         img[:, :] = self.panel[:, px_offset:self.resolution[0]+px_offset]
-
         img[:, self.offset-2:self.offset+2, :] = (0, 0, 255)
         return img
 
@@ -63,19 +54,8 @@ class Annotations(Displayable):
         self.panel = np.zeros((self.resolution[1], 3 * self.offset, 3), dtype='uint8')
         self.panel_nb = frame_number // self.frame_offset
 
-        # self.panel[:, :, 0] = random.randint(0, 255)
-        # self.panel[:, :, 1] = random.randint(0, 255)
-        # self.panel[:, :, 2] = random.randint(0, 255)
-
-        panel_start_ms = self.panel_nb * self.time_range - self.time_range
-        panel_end_ms = panel_start_ms + 3 * self.time_range
-
         panel_start_frame = self.panel_nb * self.frame_offset - self.frame_offset
         panel_end_frame = panel_start_frame + 3 * self.frame_offset
+        panel_segments = get_segments_in_range(self.segments, (panel_start_frame, panel_end_frame))
 
-        if self.unit == 'frames':
-            annots = get_annots_in_range(self.annots, (panel_start_frame, panel_end_frame))
-        else:
-            annots = get_annots_in_range(self.annots, (panel_start_ms, panel_end_ms))
-
-        draw_annotations(self.panel, annots, panel_start_frame, panel_end_frame)
+        draw_segments(self.panel, panel_segments, panel_start_frame, panel_end_frame)
