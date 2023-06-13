@@ -1,3 +1,16 @@
+from sign_language_tools.pose.mediapipe.facemesh import FACEMESH_CONTOURS
+
+
+__all__ = [
+    'LIPS_EDGES',
+    'HAND_EDGES',
+    'UPPER_POSE_EDGES',
+    'LOWER_POSE_EDGES',
+    'POSE_EDGES',
+    'FACE_EDGES',
+]
+
+
 LIPS_EDGES = (
     (0, 11), (11, 12), (12, 13), (13, 14), (14, 15),
     (15, 16), (16, 17), (17, 18), (18, 19), (19, 10),
@@ -35,3 +48,5 @@ LOWER_POSE_EDGES = (
 )
 
 POSE_EDGES = LOWER_POSE_EDGES + UPPER_POSE_EDGES
+
+FACE_EDGES = FACEMESH_CONTOURS
