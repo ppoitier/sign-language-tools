@@ -1,5 +1,7 @@
 matplotlib
+mediapipe
 numpy
 opencv-python
 pandas
 scipy
+tqdm
