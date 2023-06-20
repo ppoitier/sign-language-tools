@@ -1,0 +1,41 @@
+# pyproject.toml
+
+[build-system]
+requires        = ["setuptools>=68.0.0", "wheel"]
+build-backend   = "setuptools.build_meta"
+
+[project]
+name = "sign-language-tools"
+version = "0.0.1"
+description = "Python library containing various tools for sign language processing"
+readme = "README.md"
+authors = [
+    { name = "Pierre Poitier", email = "pierre.poitier@unamur.be" },
+    { name = "Jérôme Fink", email = "jerome.fink@unamur.be" }
+]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["sign language", "machine learning", "data augmentation", "visualization"]
+dependencies = [
+    "matplotlib",
+    "mediapipe",
+    "numpy",
+    "opencv-python",
+    "pandas",
+    "scipy",
+    "tqdm",
+]
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+dev = ["black", "pip-tools", "pytest"]
+
+[project.urls]
+Homepage = "https://github.com/ppoitier/sign-language-tools"
+
+[project.scripts]
+realpython = "sign_language_tools.__main__:main"

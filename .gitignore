@@ -3,3 +3,8 @@ __pychache__/**/*.*
 **/__pycache__/
 virtualenv
 **/notebook/
+/src/sign_language_tools.egg-info/
+
+build/
+
+dist/
