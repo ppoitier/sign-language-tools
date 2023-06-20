@@ -1,9 +1,24 @@
-# sign_language_tools
+# Sign Language Tools
 
+Python library containing various tools for sign language processing.
 
+This project is in an early stage of development.
+Do not hesitate to contribute !
 
-## Build the Doc
+# Why?
 
-The project use [mkdocs](https://www.mkdocs.org/) for its documentation. You need to install the package `mkdocs "mkdocstrings[python]" mkdocs-material` to build the doc.
+Why not? It is useful to us, therefore it may be useful to you?
 
-For the docstring in your code please follow the [google standard](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html)
+# What's included?
+
+* Video Player to visualize sign language videos with corresponding annotations and landmarks.
+* Data augmentation tools like transforms that can be used with Pytorch or Tensorflow, etc.
+* Preprocessing of pose data with interpolation, resampling, smoothing, etc.
+* Plotting functions using Matplotlib.
+
+# What's next?
+
+* More data augmentation and plotting!
+* More tools for annotations.
+* Tools for image processing.
+* To be discussed...

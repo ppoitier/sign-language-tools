@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from sign_language_tools.visualisation.video.displayable import Displayable
-from sign_language_tools.visualisation.video.cv.annotations import draw_segments
+from sign_language_tools.visualization.video.displayable import Displayable
+from sign_language_tools.visualization.video.cv.annotations import draw_segments
 
 
 def get_segments_in_range(segments: pd.DataFrame, full_range: tuple[int, int]) -> pd.DataFrame:

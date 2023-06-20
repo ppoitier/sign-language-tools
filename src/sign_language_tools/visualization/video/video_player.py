@@ -5,17 +5,27 @@ import cv2
 import numpy as np
 import pandas as pd
 
-from sign_language_tools.visualisation.video.video import Video
-from sign_language_tools.visualisation.video.images import Images
-from sign_language_tools.visualisation.video.poses import Poses
-from sign_language_tools.visualisation.video.segments import Segments
+from sign_language_tools.visualization.video.video import Video
+from sign_language_tools.visualization.video.images import Images
+from sign_language_tools.visualization.video.poses import Poses
+from sign_language_tools.visualization.video.segments import Segments
 
 
 class VideoPlayer:
-    """Video player able to display video with annotations or landmarks information.
-
-    The video player is a versatile video player that allows to visualise sign language landmarks in mediapipe format
+    """
+    The video player is a versatile video player that allows to visualise sign language landmarks
     along with a video stream and annotations.
+    Landmarks must be in the Mediapipe or OpenPose format.
+
+    Controls:
+    - Q or Escape: quit the player
+    - Space: pause
+    - S: Screenshot
+    - Left-arrow: 10 seconds forward
+    - Right-arrow: 10 seconds backward
+
+    Author:
+        v0.0.1 - ppoitier
     """
     def __init__(
             self,
@@ -23,12 +33,15 @@ class VideoPlayer:
             screenshot_dir: Optional[str] = None,
             fps: int = 24,
     ):
-        """Creation of a new video player
+        """
+        Creation of a new video player.
 
         Args:
-            root: An optional root path prepended to all.
+            root: An optional root path prepended to all paths.
             screenshot_dir: An optional folder path in which screenshot should be saved.
-            fps: The framerate of the information to display (default = 24).
+            fps: The framerate of the video player (default = 24).
+                This is automatically changed if a video is attached to the video player.
+                Therefore, we recommend you to only manually specify it when no video stream is used.
         """
         self.resolution = (756, 512)
         self.current_frame = 0
@@ -51,7 +64,8 @@ class VideoPlayer:
         self.crop = (0.0, 1.0, 0.0, 1.0)
 
     def attach_video(self, video_path: str):
-        """Attach a video file to the video player
+        """
+        Attach a video file to the video player.
 
         Only one video could be attached to a video player. The player use
         `opencv-python` to render the video.
@@ -65,10 +79,11 @@ class VideoPlayer:
         self.frame_count = self.video.frame_count
         self.fps = self.video.fps
 
-    def attach_image_dir(self, dir_path: str, extension: str = 'png', fps: int = 25):
-        """Attach an image folder to the video player.
+    def attach_image_dir(self, dir_path: str, extension: str = 'png', fps: int | None = None):
+        """
+        Attach an image folder to the video player.
 
-        The images in the folder are used as video frame in the video player. The images are
+        The images in the folder are used as video frames in the video player. They are
         displayed in alphabetical order.
 
         Only one video could be attached to a video player. The player use
@@ -77,11 +92,12 @@ class VideoPlayer:
         Args:
             dir_path: The path of the folder containing the images.
             extension: The file extension of the images (default = 'png').
-            fps: The framerate of the video to display.
+            fps: If specified, change the framerate of the video player. Default=None
         """
         self.video = Images(self._get_path(dir_path), extension=extension)
         self.frame_count = self.video.frame_count
-        self.fps = fps
+        if fps is not None:
+            self.fps = fps
 
     def attach_pose(
             self,
@@ -92,26 +108,26 @@ class VideoPlayer:
             vertex_color=(0, 0, 255),
             edge_color=(0, 255, 0),
     ):
-        """Attach a set of landmarks to the video player.
+        """
+        Attach a set of landmarks to the video player.
 
         Each set of landmark is identified by its name.
         The video player is able to display multiple sets of landmarks in the same video.
+        However, they must have different names. Otherwise, the previous landmarks are replaced.
 
         Args:
             name: The name of the set of landmarks.
             pose_sequence: The tensor containing the signal values of each landmark.
-            connections: An optional set of connections between the landmarks (default = None).
-            show_vertices: If `True`, the vertices of the landmarks are displayed.
-                Otherwise, they are hidden (default = `True`).
-            vertex_color: The color of each vertex in the BGR format (0 <= color <= 255).
-            edge_color: The color of each edge in the BGR format (0 <= color <= 255).
+                Must be of shape (T, L, 2) or (T, L, 3) where T is the number of frames and L the number of landmarks.
+            connections: An optional set of connections between the landmarks. Default=None
+            show_vertices: If true, the vertices of the landmarks are displayed.
+                Otherwise, they are hidden. Default=True
+            vertex_color: The color of each vertex in the BGR format (0 <= color <= 255) of OpenCV.
+            edge_color: The color of each edge in the BGR format (0 <= color <= 255) of OpenCV.
 
         Shape:
-            landmarks: of the shape (T, N, D) where T is the number of frames, N the number of landmarks (vertices)
-            and D the dimension of each coordinate (only the two first coordinates are shown).
-
-        Author:
-            ppoitier (v1 01.04.2023)
+            landmarks: of the shape (T, L, D) where T is the number of frames, L the number of landmarks (vertices)
+            and D the dimension of each coordinate (only the two first coordinates are shown). Typically, D=2 or D=3.
         """
         self._add_pose(name, pose_sequence, connections, show_vertices, vertex_color, edge_color)
 
@@ -125,14 +141,16 @@ class VideoPlayer:
         self.segmentations.append(Segments(segments, name, fps=self.fps, unit=unit))
 
     def set_crop(self, x: tuple[float, float] = (0, 1), y: tuple[float, float] = (0, 1)):
-        """Crop the viewport of the video player.
+        """
+        Crop the viewport of the video player.
+
+        Default viewport is x=(0, 1) and y=(0, 1).
+        x: left -> right
+        y: top -> bottom
 
         Args:
             x: The relative x-axis range (start, end) to use. Example: `x=(0.4, 0.7)`.
             y: The relative y-axis range (start, end) to use. Example: `y=(0.2, 0.5)`.
-
-        Author:
-            ppoitier (v1 01.04.2023)
         """
         assert 0 <= x[0] <= 1
         assert 0 <= x[1] <= 1
@@ -141,15 +159,13 @@ class VideoPlayer:
         self.crop = (x[0], x[1], y[0], y[1])
 
     def isolate(self, element: Literal['video', 'pose']):
-        """Isolate an element out of the main window, into a new window.
+        """
+        Isolate an element out of the main window, into a new window.
 
         Args:
             element: The element that is isolated:
                 - `video` to isolate the original video.
                 - `pose` to isolate the landmarks.
-
-        Author:
-            ppoitier (v1 01.04.2023)
         """
         if element == 'video':
             self.isolate_video = True
@@ -157,7 +173,8 @@ class VideoPlayer:
             self.isolate_pose = True
 
     def set_speed(self, new_speed: float):
-        """Change the playback speed of the video player.
+        """
+        Change the playback speed of the video player.
 
         Example:
             ```
@@ -165,21 +182,15 @@ class VideoPlayer:
             ```
 
         Args:
-            new_speed: New relative playback speed (must be positive)
-
-        Author:
-            ppoitier (v1 01.04.2023)
+            new_speed: New relative playback speed (must be positive).
         """
         assert 0 < new_speed, 'Speed must be positive.'
         self.speed = new_speed
 
     def play(self):
-        """Start the video player and display all the attached elements.
-
+        """
+        Start the video player and display all the attached elements.
         The player use `opencv-python` to render the video.
-
-        Author:
-            ppoitier (v1 01.04.2023)
         """
         self.current_frame = 0
         frame_duration = round(1000/self.fps)
@@ -207,7 +218,7 @@ class VideoPlayer:
             if self.poses is not None:
                 self.poses.draw(img, frame_nb)
                 if self.isolate_pose:
-                    self._show_frame('Skeleton (isolated)', self.poses.get_img(frame_nb), frame_nb)
+                    self._show_frame('Pose (isolated)', self.poses.get_img(frame_nb), frame_nb)
         elif self.poses is not None:
             img = self.poses.get_img(frame_nb)
         else:

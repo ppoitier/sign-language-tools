@@ -1,5 +1,10 @@
 import cv2
-from ....utils.cv import absolute_position
+
+
+def absolute_position(img, pos):
+    w = int(img.shape[1])
+    h = int(img.shape[0])
+    return int(max(0, min(w, w * pos[0]))), int(max(0, min(h, h * pos[1])))
 
 
 def draw_connections(img, positions, connections, color=(255, 0, 0), thickness=2):

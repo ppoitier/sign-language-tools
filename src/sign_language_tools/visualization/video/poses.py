@@ -1,6 +1,6 @@
 import numpy as np
-from sign_language_tools.visualisation.video.displayable import Displayable
-from sign_language_tools.visualisation.video.cv.landmarks import draw_pose
+from sign_language_tools.visualization.video.displayable import Displayable
+from sign_language_tools.visualization.video.cv.landmarks import draw_pose
 
 
 class Poses(Displayable):

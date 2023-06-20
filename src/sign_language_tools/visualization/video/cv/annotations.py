@@ -33,4 +33,5 @@ def draw_segment(img: np.ndarray, index: int, segment, panel_start: int, panel_e
 
 def draw_segments(img: np.ndarray, segments: pd.DataFrame, panel_start: int, panel_end: int):
     for index, segment in segments.iterrows():
+        index: int
         draw_segment(img, index, segment, panel_start, panel_end)

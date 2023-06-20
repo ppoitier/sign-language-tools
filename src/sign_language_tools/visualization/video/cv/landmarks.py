@@ -1,4 +1,4 @@
-from sign_language_tools.visualisation.video.cv.utils import draw_connections, draw_points
+from sign_language_tools.visualization.video.cv.utils import draw_connections, draw_points
 
 
 def draw_pose(
