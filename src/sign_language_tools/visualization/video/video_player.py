@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Literal
+from typing import Optional, Literal, Union
 
 import cv2
 import numpy as np
@@ -51,7 +51,7 @@ class VideoPlayer:
 
         self.root = root
         self.screenshot_dir = screenshot_dir
-        self.video: Optional[Video | Images] = None
+        self.video: Optional[Union[Video, Images]] = None
         self.poses: Optional[Poses] = None
         self.segmentations: list[Segments] = []
 
@@ -79,7 +79,7 @@ class VideoPlayer:
         self.frame_count = self.video.frame_count
         self.fps = self.video.fps
 
-    def attach_image_dir(self, dir_path: str, extension: str = 'png', fps: int | None = None):
+    def attach_image_dir(self, dir_path: str, extension: str = 'png', fps: Optional[int] = None):
         """
         Attach an image folder to the video player.
 
@@ -131,7 +131,7 @@ class VideoPlayer:
         """
         self._add_pose(name, pose_sequence, connections, show_vertices, vertex_color, edge_color)
 
-    def attach_segments(self, name: str, segments: pd.DataFrame | np.ndarray, unit: str = 'ms'):
+    def attach_segments(self, name: str, segments: Union[pd.DataFrame, np.ndarray], unit: str = 'ms'):
         if isinstance(segments, np.ndarray):
             segments = pd.DataFrame({
                 'start': pd.Series(segments[:, 0], dtype='int32'),

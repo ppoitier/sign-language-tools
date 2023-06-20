@@ -1,0 +1,3 @@
+# MANIFEST.in
+
+include src/sign_language_tools/*.toml

@@ -4,3 +4,6 @@ __pychache__/**/*.*
 virtualenv
 **/notebook/
 .ipynb_checkpoints
+/src/sign_language_tools.egg-info/
+build/
+dist/
