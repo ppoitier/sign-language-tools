@@ -7,3 +7,4 @@ virtualenv
 /src/sign_language_tools.egg-info/
 build/
 dist/
+site
