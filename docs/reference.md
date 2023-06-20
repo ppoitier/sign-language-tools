@@ -1,1 +1,1 @@
-:::src.sign_language_tools.visualisation.player.video_player
+:::src.sign_language_tools.visualisation.video.video_player

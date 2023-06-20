@@ -3,3 +3,4 @@ __pychache__/**/*.*
 **/__pycache__/
 virtualenv
 **/notebook/
+.ipynb_checkpoints
