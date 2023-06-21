@@ -292,7 +292,22 @@
 
   <h1>Visualization</h1>
 
-<p>This modules provides an interface to visualise and save video clips or frames of sign language datasets. The video could be enriched by annotations and overlays such as pose information.</p>
+<p>This modules provides an interface to visualise and save video clips or frames of sign language datasets. The video could be enriched by annotations and overlays such as pose information. The annotations linked to the video could also be displayed liked showed in this example : </p>
+<p><img alt="Example of video player" src="../figures/video_player.gif" title="Example of video player" /></p>
+<p>Hands on example of how to use the video player could be found in the <a href="https://github.com/ppoitier/sign-language-tools/tree/main/examples"><code>examples</code> folder</a> in the project repository. Once the player is launched, you can:</p>
+<ul>
+<li>Use <strong>S</strong> key to save the current frame in the screenshot folder</li>
+<li>Use <strong>Space</strong> to play and pause the current video</li>
+<li>Use the <strong>Arrows</strong> to move back and forth in the video</li>
+<li>Use <strong>Q</strong> to exit the video player</li>
+</ul>
+<p>The <code>VideoPlayer</code> allows you to configure the result you want to see by attaching information. The object that could be attached are the following :</p>
+<ul>
+<li><strong>Video</strong>: Only one video could be attached to the player. The video could either be a video file or a folder containing one image for each frame of the video.</li>
+<li><strong>Pose</strong>: You can attach as many pose as you like to a player. If you are using Mediapipe of OpenPose, the <a href="../pose/"><code>pose</code></a> module provides some useful functions to pre-process or modify those landmarks.</li>
+<li><strong>Segments</strong>: A segment is represented by a <code>start</code> timestamp, an <code>end</code> timestamp and a label. Segments represents annotations associated with the video and will be displayed along with it.</li>
+</ul>
+<p>For more information about the <code>VideoPlayer</code> object and its methods refer to the <a href="../reference/">reference</a></p>
 
 
 
