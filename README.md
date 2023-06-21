@@ -5,6 +5,8 @@ Python library containing various tools for sign language processing.
 This project is in an early stage of development.
 Do not hesitate to contribute !
 
+A baby documentation is [available here](https://ppoitier.github.io/sign-language-tools/)
+
 # Why?
 
 Why not? It is useful to us, therefore it may be useful to you?
@@ -22,3 +24,4 @@ Why not? It is useful to us, therefore it may be useful to you?
 * More tools for annotations.
 * Tools for image processing.
 * To be discussed...
+
