@@ -1,9 +1,12 @@
 import numpy as np
 from scipy.signal import savgol_filter
 
+from sign_language_tools.core.transform import Transform
 
-class SavitchyGolayFiltering:
+
+class SavitchyGolayFiltering(Transform):
     def __init__(self, window_length: int, polynom_order: int):
+        super().__init__()
         self.window_length = window_length
         self.polynom_order = polynom_order
 

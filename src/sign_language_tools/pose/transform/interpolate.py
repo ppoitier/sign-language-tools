@@ -1,9 +1,10 @@
 import numpy as np
 
+from sign_language_tools.core.transform import Transform
 import sign_language_tools.pose.transform.functional as F
 
 
-class InterpolateMissing:
+class InterpolateMissing(Transform):
     """
     Compute missing landmarks (NaN coordinates) in a pose sequence using an interpolation function.
     See `get_landmark_interpolation_function` for more information about the interpolation.
@@ -22,6 +23,7 @@ class InterpolateMissing:
         ppoitier (v1 03.04.2023)
     """
     def __init__(self, method: str = 'linear'):
+        super().__init__()
         self.method = method
 
     def __call__(self, pose_sequence: np.ndarray):

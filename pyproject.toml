@@ -6,7 +6,7 @@ build-backend   = "setuptools.build_meta"
 
 [project]
 name = "sign-language-tools"
-version = "0.0.1"
+version = "0.1.0"
 description = "Python library containing various tools for sign language processing"
 readme = "README.md"
 authors = [
@@ -27,6 +27,7 @@ dependencies = [
     "opencv-python",
     "pandas",
     "scipy",
+    "scikit-learn",
     "tqdm",
 ]
 requires-python = ">=3.9"

@@ -2,10 +2,13 @@ import numpy as np
 import random
 from math import cos, sin, pi
 
+from sign_language_tools.core.transform import Transform
 
-class Rotation2D:
+
+class Rotation2D(Transform):
 
     def __init__(self, angle: float, center=(0.5, 0.5)):
+        super().__init__()
         self.center = center
         self.angle = angle
 

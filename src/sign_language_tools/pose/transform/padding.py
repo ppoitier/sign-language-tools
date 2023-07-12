@@ -1,7 +1,9 @@
 import numpy as np
 
+from sign_language_tools.core.transform import Transform
 
-class Padding:
+
+class Padding(Transform):
     def __init__(
         self,
         min_length: int,
@@ -9,6 +11,7 @@ class Padding:
         mode: str = "constant",
         constant_value: float = 0.0,
     ):
+        super().__init__()
         self.min_length = min_length
         self.location = location
         self.mode = mode

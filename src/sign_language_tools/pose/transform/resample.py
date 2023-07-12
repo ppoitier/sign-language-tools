@@ -1,8 +1,10 @@
 import numpy as np
+
 import sign_language_tools.pose.transform.functional as F
+from sign_language_tools.core.transform import Transform
 
 
-class Resample:
+class Resample(Transform):
     """Resample a sequence of landmarks to a given length.
 
     Interpolation is used to compute new landmarks. See `interpolation.get_landmark_interpolation_function`.
@@ -16,6 +18,7 @@ class Resample:
     """
 
     def __init__(self, new_length: int, method: str = 'linear'):
+        super().__init__()
         self.new_length = new_length
         self.method = method
 
