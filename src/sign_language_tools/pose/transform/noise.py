@@ -1,8 +1,11 @@
 import numpy as np
 
+from sign_language_tools.core.transform import Transform
 
-class GaussianNoise:
+
+class GaussianNoise(Transform):
     def __init__(self, scale: float):
+        super().__init__()
         self.scale = scale
 
     def __call__(self, landmarks: np.ndarray):

@@ -1,9 +1,12 @@
 import numpy as np
 import random
 
+from sign_language_tools.core.transform import Transform
 
-class Translation:
+
+class Translation(Transform):
     def __init__(self, dx: float, dy: float):
+        super().__init__()
         self.dx = dx
         self.dy = dy
 
