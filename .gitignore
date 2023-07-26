@@ -8,3 +8,4 @@ virtualenv
 build/
 dist/
 site
+.vscode
