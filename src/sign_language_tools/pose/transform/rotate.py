@@ -6,7 +6,6 @@ from sign_language_tools.core.transform import Transform
 
 
 class Rotation2D(Transform):
-
     def __init__(self, angle: float, center=(0.5, 0.5)):
         super().__init__()
         self.center = center
@@ -23,7 +22,7 @@ class Rotation2D(Transform):
 
 
 class RandomRotation2D(Rotation2D):
-    def __init__(self, angle_range=(0, 2*pi), center=(0.5, 0.5)):
+    def __init__(self, angle_range=(0, 2 * pi), center=(0.5, 0.5)):
         r0, r1 = angle_range
         angle = random.uniform(r0, r1)
         super().__init__(angle, center)
