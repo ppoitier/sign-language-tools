@@ -28,6 +28,10 @@ def extract_landmarks_from_video_file(
 
     cap = cv2.VideoCapture(video_path)
     n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    if not cap.isOpened() or n_frames == 0:
+        raise ValueError(f"Could not properly read the video file: {video_path}")
+
     if frame_range is None:
         frame_range = range(n_frames)
     else:
