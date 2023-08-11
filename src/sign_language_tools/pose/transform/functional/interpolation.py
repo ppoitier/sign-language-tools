@@ -2,7 +2,11 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 
-def get_landmark_interpolation_function(landmarks: np.ndarray, method: str = 'linear') -> callable:
+def get_landmark_interpolation_function(
+        landmarks: np.ndarray,
+        method: str = 'linear',
+        extrapolate: bool = False,
+) -> callable:
     """Return an approximation of the function f(t) = Y_t where t is any instant and Y the landmarks
     corresponding to it. For any given t, the function f uses interpolation to compute the resulting Y_t
     given the observed data.
@@ -21,11 +25,12 @@ def get_landmark_interpolation_function(landmarks: np.ndarray, method: str = 'li
             - `nearest`
             - `previous`
             - `next`
+        extrapolate: If true, extrapolate values outside the observations range. Otherwise, fill them with NaN.
     Returns:
         interp_func: the interpolation function
 
     Author:
-        ppoitier (v1 03.04.2023)
+        ppoitier (v1.1 10.07.2023)
     """
     # landmarks shape (T, N, C)
     t = landmarks.shape[0]
@@ -42,7 +47,7 @@ def get_landmark_interpolation_function(landmarks: np.ndarray, method: str = 'li
         axis=0,
         assume_sorted=True,
         bounds_error=False,
-        fill_value='extrapolate',
+        fill_value=('extrapolate' if extrapolate else np.nan),
     )
 
 

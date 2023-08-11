@@ -18,7 +18,7 @@ class Padding(Transform):
         self.constant_value = constant_value
 
     def __call__(self, pose_sequence: np.ndarray) -> np.ndarray:
-        if pose_sequence.shape[0] >= self.location:
+        if pose_sequence.shape[0] >= self.min_length:
             return pose_sequence
 
         padding = self.min_length - pose_sequence.shape[0]

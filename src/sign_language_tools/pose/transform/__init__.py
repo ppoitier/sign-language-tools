@@ -1,5 +1,6 @@
 from sign_language_tools.pose.transform.concatenate import *
 from sign_language_tools.pose.transform.filter import *
+from sign_language_tools.pose.transform.flatten import *
 from sign_language_tools.pose.transform.flip import *
 from sign_language_tools.pose.transform.interpolate import *
 from sign_language_tools.pose.transform.noise import *
