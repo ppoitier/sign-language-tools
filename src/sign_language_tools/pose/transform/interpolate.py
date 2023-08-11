@@ -35,4 +35,8 @@ class InterpolateMissing(Transform):
             Pose sequence where missing landmarks have been replaced by interpolated landmarks.
         """
         f = F.get_landmark_interpolation_function(pose_sequence, self.method)
-        return f(np.arange(pose_sequence.shape[0]))
+        pose_sequence = f(np.arange(pose_sequence.shape[0]))
+        g = F.get_landmark_interpolation_function(pose_sequence, method='nearest', extrapolate=True)
+        missing_values_idxs = np.where(np.any(np.any(np.isnan(pose_sequence), axis=2), axis=1))[0]
+        pose_sequence[missing_values_idxs] = g(missing_values_idxs)
+        return pose_sequence

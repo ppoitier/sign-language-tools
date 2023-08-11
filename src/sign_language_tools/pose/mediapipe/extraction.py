@@ -14,7 +14,7 @@ def extract_landmarks(video_path: str, **kwargs):
     return face, pose, left_hand, right_hand
 
 
-def extract_and_save_landmarks(video_path: str, video_id: str, dest_path: str = './', **kwargs):
+def extract_and_save_video_landmarks(video_path: str, video_id: str, dest_path: str, **kwargs):
     face, pose, left_hand, right_hand = extract_landmarks(video_path, **kwargs)
     np.save(os.path.join(dest_path, 'face', video_id), face)
     np.save(os.path.join(dest_path, 'pose', video_id), pose)

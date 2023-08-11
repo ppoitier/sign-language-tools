@@ -3,6 +3,7 @@ from typing import Optional
 from itertools import groupby
 
 import numpy as np
+import pandas as pd
 
 from sign_language_tools.core.transform import Transform
 
@@ -27,8 +28,12 @@ class ToSegmentationVector(Transform):
         if len(args) > 1:
             vec_size = len(args[0])
             annotations = args[1]
+            if isinstance(annotations, pd.DataFrame):
+                annotations = annotations.values
         else:
             annotations = args[0]
+            if isinstance(annotations, pd.DataFrame):
+                annotations = annotations.values
             if self.vector_size is None:
                 vec_size = math.ceil(annotations[:, 1].max())
             else:
