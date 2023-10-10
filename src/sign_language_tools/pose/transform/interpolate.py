@@ -7,8 +7,9 @@ import sign_language_tools.pose.transform.functional as F
 class InterpolateMissing(Transform):
     """
     Compute missing landmarks (NaN coordinates) in a pose sequence using an interpolation function.
-    See `get_landmark_interpolation_function` for more information about the interpolation. If the
-    pose is only made of missing landmarks (nan), the pose is returned unchanged.
+    See `get_landmark_interpolation_function` for more information about the interpolation.
+
+    If the pose sequence is only made of missing landmarks (NaN), it is returned unchanged.
 
     Args:
         method: Specify the method used to compute the interpolated landmarks.
@@ -36,7 +37,8 @@ class InterpolateMissing(Transform):
             pose_sequence: Pose sequence containing observed and missing landmarks (NaN values).
 
         Returns:
-            Pose sequence where missing landmarks have been replaced by interpolated landmarks.
+            Pose sequence where missing landmarks have been replaced by interpolated landmarks
+            or unchanged pose sequence.
         """
         if np.isnan(pose_sequence).all():
             return pose_sequence
