@@ -23,6 +23,14 @@ class Rotation2D(Transform):
 
 class RandomRotation2D(Rotation2D):
     def __init__(self, angle_range=(0, 2 * pi), center=(0.5, 0.5)):
+        self.angle_range = angle_range
+
         r0, r1 = angle_range
         angle = random.uniform(r0, r1)
         super().__init__(angle, center)
+
+    def __call__(self, landmarks: np.ndarray):
+        res = super().__call__(landmarks)
+        self.angle = random.uniform(*self.angle_range)
+
+        return res
