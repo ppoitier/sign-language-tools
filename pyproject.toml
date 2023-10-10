@@ -6,7 +6,7 @@ build-backend   = "setuptools.build_meta"
 
 [project]
 name = "sign-language-tools"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python library containing various tools for sign language processing"
 readme = "README.md"
 authors = [
