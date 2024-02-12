@@ -28,9 +28,7 @@ class Padding(Transform):
         else:
             pad_width = ((padding, 0), (0, 0), (0, 0))
 
-        return np.pad(
-            pose_sequence,
-            pad_width,
-            mode=self.mode,
-            constant_values=self.constant_value,
-        )
+        if self.mode == 'constant':
+            return np.pad(pose_sequence, pad_width, constant_values=self.constant_value)
+        else:
+            return np.pad(pose_sequence, pad_width, mode=self.mode)

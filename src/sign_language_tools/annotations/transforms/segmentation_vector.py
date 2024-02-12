@@ -39,7 +39,8 @@ class ToSegmentationVector(Transform):
             else:
                 vec_size = self.vector_size
 
-        segmentation = np.zeros(vec_size, dtype=self.dtype)
+        # segmentation = np.zeros(vec_size, dtype=self.dtype)
+        segmentation = np.full(vec_size, fill_value=self.background_label, dtype=self.dtype)
         for annot in annotations:
             label = annot[2] if self.use_annotation_labels else self.fill_label
             segmentation[annot[0]:annot[1]] = label
