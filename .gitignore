@@ -1,4 +1,5 @@
 .idea/
+/playground/
 __pychache__/**/*.*
 **/__pycache__/
 virtualenv
