@@ -24,12 +24,3 @@ class Randomize(Transform):
         if np.random.rand() < self.probability:
             return self.transform(*args)
         return self.identity(*args)
-
-
-if __name__ == '__main__':
-    def my_transform(x, y):
-        return x+1, y+1
-
-    my_random_transform = Randomize(my_transform, probability=0.5)
-    for _ in range(10):
-        print(my_random_transform(2, 3))
