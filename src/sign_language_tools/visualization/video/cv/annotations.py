@@ -12,8 +12,8 @@ def draw_segment(img: np.ndarray, index: int, segment, panel_start: int, panel_e
     width = img.shape[1]
     height = img.shape[0]
 
-    x0 = to_img_x(segment[0], panel_start, panel_end, width)
-    x1 = to_img_x(segment[1], panel_start, panel_end, width)
+    x0 = to_img_x(segment.iloc[0], panel_start, panel_end, width)
+    x1 = to_img_x(segment.iloc[1], panel_start, panel_end, width)
 
     color = (0, 255, 0)
     if 'color' in segment:
@@ -28,7 +28,7 @@ def draw_segment(img: np.ndarray, index: int, segment, panel_start: int, panel_e
         text_y1 = height - 100
 
         cv2.line(img, (text_x, text_y0), (text_x, text_y1), color=(0, 255, 0), thickness=1)
-        cv2.putText(img, str(segment[2]), (text_x + 2, text_y0), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, 2)
+        cv2.putText(img, str(segment.iloc[2]), (text_x + 2, text_y0), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, 2)
 
 
 def draw_segments(img: np.ndarray, segments: pd.DataFrame, panel_start: int, panel_end: int):

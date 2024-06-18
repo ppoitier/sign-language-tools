@@ -136,8 +136,8 @@ def _compute_xy_lim(
     if y_lim is None:
         y_lim = refocus_y
 
-    x_size = x_lim[1] - x_lim[0]
-    y_size = y_lim[0] - y_lim[1]
+    x_size = abs(x_lim[1] - x_lim[0])
+    y_size = abs(y_lim[0] - y_lim[1])
     aspect_ratio = (x_size * aspect_ratio / y_size)
 
     return x_lim, y_lim, aspect_ratio
