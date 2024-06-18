@@ -18,10 +18,12 @@ class Padding(Transform):
         self.constant_value = constant_value
 
     def __call__(self, pose_sequence: np.ndarray) -> np.ndarray:
-        if pose_sequence.shape[0] >= self.min_length:
+        T = pose_sequence.shape[0]
+
+        if T >= self.min_length:
             return pose_sequence
 
-        padding = self.min_length - pose_sequence.shape[0]
+        padding = self.min_length - T
         if self.location == "right":
             pad_width = ((0, padding), (0, 0), (0, 0))
 
@@ -30,5 +32,8 @@ class Padding(Transform):
 
         if self.mode == 'constant':
             return np.pad(pose_sequence, pad_width, constant_values=self.constant_value)
+        elif self.mode == 'repeat':
+            n_repeats = int(np.ceil(self.min_length / T))
+            return np.tile(pose_sequence, (n_repeats, 1, 1))[:self.min_length]
         else:
             return np.pad(pose_sequence, pad_width, mode=self.mode)

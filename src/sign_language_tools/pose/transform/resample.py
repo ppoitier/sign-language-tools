@@ -28,3 +28,14 @@ class Resample(Transform):
         x = np.linspace(0, t - 1, self.new_length)
         f = F.get_landmark_interpolation_function(pose_sequence, self.method)
         return f(x)
+
+
+class RandomResample(Resample):
+    def __init__(self, min_length: int, max_length: int, method: str = 'linear'):
+        super().__init__(min_length, method)
+        self.min_length = min_length
+        self.max_length = max_length
+
+    def __call__(self, pose_sequence: np.ndarray) -> np.ndarray:
+        self.new_length = np.random.randint(self.min_length, self.max_length)
+        return super().__call__(pose_sequence)

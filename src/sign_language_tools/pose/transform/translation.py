@@ -16,18 +16,13 @@ class Translation(Transform):
         return landmarks
 
 
-class RandomTranslation(Translation):
+class RandomTranslation(Transform):
     def __init__(self, dx_range=(-0.2, 0.2), dy_range=(-0.2, 0.2)):
+        super().__init__()
         self.dx_range = dx_range
         self.dy_range = dy_range
 
-        dx = random.uniform(*dx_range)
-        dy = random.uniform(*dy_range)
-        super().__init__(dx, dy)
-
     def __call__(self, landmarks: np.ndarray):
-        res = super().__call__(landmarks)
-        self.dx = random.uniform(*self.dx_range)
-        self.dy = random.uniform(*self.dy_range)
-
-        return res
+        landmarks[:, :, 0] += random.uniform(*self.dx_range)
+        landmarks[:, :, 1] += random.uniform(*self.dy_range)
+        return landmarks

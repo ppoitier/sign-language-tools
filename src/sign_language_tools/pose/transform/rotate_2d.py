@@ -22,7 +22,7 @@ class Rotation2D(Transform):
 
 
 class RandomRotation2D(Rotation2D):
-    def __init__(self, angle_range=(0, 2 * pi), center=(0.5, 0.5)):
+    def __init__(self, angle_range=(-pi/12, pi/12), center=(0.5, 0.5)):
         self.angle_range = angle_range
 
         r0, r1 = angle_range
