@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,29 +7,70 @@ from matplotlib.lines import Line2D
 
 
 __all__ = [
-    'plot_landmarks',
+    "plot_landmarks",
 ]
 
 Edge = Tuple[int, int]
 
 
+def plot_landmarks_sequence(
+    landmarks: np.array,
+    connections: Optional[List[Tuple[Edge, ...]]],
+    *,
+    vertex_size: float = 0.01,
+    vertex_color: str = "lime",
+    edge_color="white",
+    background_color="black",
+    text_color="red",
+    aspect_ratio: float = 1,
+    show_axis: bool = False,
+    show_indices: bool = False,
+    x_lim: Optional[tuple[float, float]] = None,
+    y_lim: Optional[tuple[float, float]] = None,
+    refocus: bool = False,
+    focus_pad: float = 0.02,
+):
+
+    if connections != None and len(connections) != len(landmarks):
+        raise ValueError(
+            "If connections edges are provided, each landmarks should be associated with an edge mapping."
+        )
+
+    sequence_len = len(landmarks[0])
+
+    fig, subplots = plt.subplots(1, sequence_len)
+
+    for idx in range(sequence_len):
+        ax = subplots[idx]
+
+        for landmark_idx, landmark in enumerate(landmarks):
+
+            connection = None
+            if connections:
+                connection = connections[landmark_idx]
+
+            ax = plot_landmarks(landmark[idx], connection, ax=ax)
+
+    return fig
+
+
 def plot_landmarks(
-        landmarks: np.ndarray,
-        connections: Optional[Tuple[Edge, ...]] = None,
-        *,
-        ax=None,
-        vertex_size: float = 0.01,
-        vertex_color='lime',
-        edge_color='white',
-        background_color='black',
-        text_color='red',
-        aspect_ratio: float = 1,
-        show_axis: bool = False,
-        show_indices: bool = False,
-        x_lim: Optional[tuple[float, float]] = None,
-        y_lim: Optional[tuple[float, float]] = None,
-        refocus: bool = False,
-        focus_pad: float = 0.02,
+    landmarks: np.ndarray,
+    connections: Optional[Tuple[Edge, ...]] = None,
+    *,
+    ax=None,
+    vertex_size: float = 0.01,
+    vertex_color="lime",
+    edge_color="white",
+    background_color="black",
+    text_color="red",
+    aspect_ratio: float = 1,
+    show_axis: bool = False,
+    show_indices: bool = False,
+    x_lim: Optional[tuple[float, float]] = None,
+    y_lim: Optional[tuple[float, float]] = None,
+    refocus: bool = False,
+    focus_pad: float = 0.02,
 ):
     """
     Plot landmarks on a figure using matplotlib.
@@ -72,7 +113,7 @@ def plot_landmarks(
     ax.set_facecolor(background_color)
     ax.axes.xaxis.set_visible(show_axis)
     ax.axes.yaxis.set_visible(show_axis)
-    ax.set_box_aspect(1/aspect_ratio)
+    ax.set_box_aspect(1 / aspect_ratio)
     ax.set_xlim(*x_lim)
     ax.set_ylim(*y_lim)
 
@@ -89,8 +130,8 @@ def plot_landmarks(
 
 
 def _compute_refocus(
-        landmarks: np.ndarray,
-        focus_pad: float,
+    landmarks: np.ndarray,
+    focus_pad: float,
 ) -> Tuple[Tuple[float, float], Tuple[float, float]]:
     """
     Calculate axis limits to refocus the figure on landmarks, with configurable padding.
@@ -118,13 +159,13 @@ def _compute_refocus(
 
 
 def _compute_xy_lim(
-        landmarks: np.ndarray,
-        aspect_ratio: float,
-        *,
-        x_lim: Optional[float] = None,
-        y_lim: Optional[float] = None,
-        refocus: bool = False,
-        focus_pad: float = 0.02,
+    landmarks: np.ndarray,
+    aspect_ratio: float,
+    *,
+    x_lim: Optional[float] = None,
+    y_lim: Optional[float] = None,
+    refocus: bool = False,
+    focus_pad: float = 0.02,
 ):
     if refocus:
         refocus_x, refocus_y = _compute_refocus(landmarks, focus_pad)
@@ -138,7 +179,7 @@ def _compute_xy_lim(
 
     x_size = abs(x_lim[1] - x_lim[0])
     y_size = abs(y_lim[0] - y_lim[1])
-    aspect_ratio = (x_size * aspect_ratio / y_size)
+    aspect_ratio = x_size * aspect_ratio / y_size
 
     return x_lim, y_lim, aspect_ratio
 
@@ -156,12 +197,14 @@ def _draw_edges(x, y, *, ax, connections, edge_color):
 
 def _draw_vertices(landmarks: np.ndarray, ax, vertex_size, vertex_color):
     for coords in landmarks:
-        ax.add_patch(Circle(
-            (coords[0], coords[1]),
-            radius=vertex_size/2,
-            facecolor=vertex_color,
-            zorder=2,
-        ))
+        ax.add_patch(
+            Circle(
+                (coords[0], coords[1]),
+                radius=vertex_size / 2,
+                facecolor=vertex_color,
+                zorder=2,
+            )
+        )
 
 
 def _draw_indices(landmarks: np.ndarray, ax, color):
