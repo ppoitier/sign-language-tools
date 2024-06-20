@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Union
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,21 +14,8 @@ Edge = Tuple[int, int]
 
 
 def plot_landmarks_sequence(
-    landmarks: np.array,
+    landmarks: Union[dict[any, np.ndarray]],
     connections: Optional[List[Tuple[Edge, ...]]],
-    *,
-    vertex_size: float = 0.01,
-    vertex_color: str = "lime",
-    edge_color="white",
-    background_color="black",
-    text_color="red",
-    aspect_ratio: float = 1,
-    show_axis: bool = False,
-    show_indices: bool = False,
-    x_lim: Optional[tuple[float, float]] = None,
-    y_lim: Optional[tuple[float, float]] = None,
-    refocus: bool = False,
-    focus_pad: float = 0.02,
 ):
 
     if connections != None and len(connections) != len(landmarks):
@@ -36,14 +23,16 @@ def plot_landmarks_sequence(
             "If connections edges are provided, each landmarks should be associated with an edge mapping."
         )
 
-    sequence_len = len(landmarks[0])
+    sequence_len = len(landmarks[next(iter(landmarks))])
 
     fig, subplots = plt.subplots(1, sequence_len)
 
     for idx in range(sequence_len):
         ax = subplots[idx]
 
-        for landmark_idx, landmark in enumerate(landmarks):
+        for landmark_idx, landmark_key in enumerate(landmarks):
+
+            landmark = landmarks[landmark_key]
 
             connection = None
             if connections:
@@ -60,7 +49,7 @@ def plot_landmarks(
     *,
     ax=None,
     vertex_size: float = 0.01,
-    vertex_color="lime",
+    vertex_color: str = "lime",
     edge_color="white",
     background_color="black",
     text_color="red",
