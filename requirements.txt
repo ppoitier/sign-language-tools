@@ -3,6 +3,7 @@ mediapipe
 numpy
 opencv-python
 pandas
+plotly
 scipy
 scikit-learn
 tqdm
