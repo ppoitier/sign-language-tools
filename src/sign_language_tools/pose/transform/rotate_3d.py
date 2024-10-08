@@ -8,7 +8,7 @@ class RandomRotation3D(Transform):
     def __init__(
             self,
             mode: str = 'horizontal',
-            angle_range: tuple[float, float] = (-np.pi/6, np.pi/6),
+            angle_range: tuple[float, float] = (-np.pi/90, np.pi/90),
             rotation_center: tuple[float, float, float] = (0.5, 0.5, 1.0),
     ):
         super().__init__()

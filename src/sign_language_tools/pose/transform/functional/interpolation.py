@@ -34,7 +34,7 @@ def get_landmark_interpolation_function(
     """
     # landmarks shape (T, N, C)
     t = landmarks.shape[0]
-    x = np.argwhere(~np.isnan(landmarks.reshape(t, -1)).any(axis=1)).reshape(-1)
+    x = np.argwhere((~np.isnan(landmarks.reshape(t, -1))).any(axis=1)).reshape(-1)
     y = landmarks[x]
 
     if len(y) < 2:
