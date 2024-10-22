@@ -14,7 +14,7 @@ from sign_language_tools.pose.transform.rotate_3d import RandomRotation3D
 from sign_language_tools.pose.transform.scale import Scale, RandomScale
 from sign_language_tools.pose.transform.smooth import SavitchyGolayFiltering
 from sign_language_tools.pose.transform.split import Split
-from sign_language_tools.pose.transform.temporal_crop import TemporalRandomCrop
+from sign_language_tools.pose.transform.temporal_crop import TemporalCrop, TemporalRandomCrop
 from sign_language_tools.pose.transform.temporal_scale import TemporalScale, RandomTemporalScale
 from sign_language_tools.pose.transform.translation import Translation, RandomTranslation
 from sign_language_tools.pose.transform.padding import Padding
