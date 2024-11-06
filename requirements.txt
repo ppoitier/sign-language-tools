@@ -4,6 +4,7 @@ numpy
 opencv-python
 pandas
 plotly
+pyarrow
 scipy
 scikit-learn
 tqdm

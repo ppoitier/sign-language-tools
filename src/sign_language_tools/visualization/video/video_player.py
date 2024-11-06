@@ -144,9 +144,10 @@ class VideoPlayer:
                 {
                     "start": pd.Series(segments[:, 0], dtype="int32"),
                     "end": pd.Series(segments[:, 1], dtype="int32"),
-                    "label": pd.Series(segments[:, 2]),
                 }
             )
+            if segments.shape[-1] > 2:
+                segments["label"] = pd.Series(segments[:, 2])
         self.segmentations.append(Segments(segments, name, fps=self.fps, unit=unit))
 
     def set_crop(

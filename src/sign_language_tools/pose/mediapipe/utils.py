@@ -1,5 +1,6 @@
 from typing import Optional
 
+import os
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -55,7 +56,36 @@ def extract_landmarks_from_video_file(
     return results
 
 
+def extract_landmarks_from_dir(
+        dir_path: str,
+        options: Optional[dict] = None,
+        show_progress: bool = False,
+):
+    if options is None:
+        options = {
+            'static_image_mode': False,
+            'model_complexity': 2,
+            'refine_face_landmarks': False,
+            'smooth_landmarks': True,
+            'min_detection_confidence': 0.5,
+            'min_tracking_confidence': 0.5,
+            'enable_segmentation': False,
+            'smooth_segmentation': False,
+        }
+
+    results = []
+    with mp_holistic.Holistic(**options) as holistic:
+        for filename in tqdm(sorted(os.listdir(dir_path)), disable=not show_progress):
+            image = cv2.imread(f"{dir_path}/{filename}")
+            image.flags.writeable = False
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            image_results = holistic.process(image)
+            results.append(image_results)
+    return results
+
+
 def landmarks_to_np(landmarks, n_landmarks: int, dtype='float16', fill_value=np.nan):
     if landmarks is None:
         return np.full((n_landmarks, 3), fill_value=fill_value, dtype=dtype)
-    return np.array([(lm.x, lm.y, lm.z) for lm in landmarks.landmark], dtype=dtype)
+    array = np.array([(lm.x, lm.y, lm.z) for lm in landmarks.landmark], dtype=dtype)
+    return array
