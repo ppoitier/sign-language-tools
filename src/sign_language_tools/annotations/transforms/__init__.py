@@ -2,3 +2,5 @@ from .segmentation_vector import SegmentationVectorToSegments, SegmentsToSegment
 from .scale import ScaleSegments
 from .boundaries import SegmentsToBoundaries
 from .offset import LinearBoundaryOffset
+from .filter_silence import FilterShortSilence
+from .merge import MergeSegmentsOnTransition

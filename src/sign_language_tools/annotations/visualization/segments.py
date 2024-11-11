@@ -8,7 +8,7 @@ def plot_segments(segments: np.ndarray, labels: list[str] = None, ax=None, alpha
 
     for index, segment in enumerate(segments):
         start, end = segment[:2]
-        ax.axvspan(start, end, alpha=alpha, edgecolor='black', linewidth=0.5, **kwargs)
+        ax.axvspan(start, end+1, alpha=alpha, edgecolor='black', linewidth=0.5, **kwargs)
         if labels is not None:
             label = labels[index]
             plt.text(start + (end - start) / 2, 0.5, str(label), ha='center')
