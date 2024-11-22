@@ -14,6 +14,7 @@ class SegmentsToBoundaries(Transform):
         exclude_edges: bool = True,
         min_start: float | None = 0.0,
         max_end: float | None = None,
+        rounded: bool = True,
         discrete_gap: bool = True,
     ):
         """
@@ -38,6 +39,7 @@ class SegmentsToBoundaries(Transform):
         self.exclude_edges = exclude_edges
         self.min_start = min_start
         self.max_end = max_end
+        self.rounded = rounded
         self.discrete_gap = discrete_gap
 
     def __call__(self, segments: np.ndarray) -> np.ndarray:
@@ -93,6 +95,8 @@ class SegmentsToBoundaries(Transform):
             if self.max_end is not None:
                 mask &= boundaries[:, 1] < self.max_end
             boundaries = boundaries[mask]
+        if self.rounded:
+            return np.round(boundaries).astype('int32')
         return boundaries
 
 
