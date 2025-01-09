@@ -1,0 +1,6 @@
+PALM_IDXS = (0, 1, 5, 9, 13, 17)
+THUMB_IDXS = (2, 3, 4)
+INDEX_IDXS = (6, 7, 8)
+MIDDLE_IDXS = (10, 11, 12)
+RING_IDXS = (14, 15, 16)
+PINKY_IDXS = (18, 19, 20)
