@@ -62,10 +62,11 @@ class SegmentsToBoundaries(Transform):
             ends = np.array([])
 
         # Stack all transitions and their associated lengths
-        if self.discrete_gap:
-            transitions = np.concatenate([starts - 0.5, ends + 0.5])
-        else:
-            transitions = np.concatenate([starts, ends])
+        # if self.discrete_gap:
+        #     transitions = np.concatenate([starts - 0.5, ends + 0.5])
+        # else:
+        #     transitions = np.concatenate([starts, ends])
+        transitions = np.concatenate([starts, ends])
         associated_lengths = np.concatenate([segment_lengths, segment_lengths])
 
         # Get sorting indices for transitions to handle duplicates
@@ -83,6 +84,8 @@ class SegmentsToBoundaries(Transform):
             width_values = np.full_like(transitions, self.width)
         else:
             width_values = self.relative_width * associated_lengths
+        if self.discrete_gap:
+            width_values -= 1
         if self.min_width is not None:
             width_values[width_values < self.min_width] = self.min_width
         boundaries_start = transitions - width_values / 2
