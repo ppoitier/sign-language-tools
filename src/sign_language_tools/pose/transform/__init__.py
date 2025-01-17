@@ -3,6 +3,7 @@ from sign_language_tools.pose.transform.clip import Clip
 from sign_language_tools.pose.transform.concatenate import Concatenate
 from sign_language_tools.pose.transform.drop_coordinates import DropCoordinates
 from sign_language_tools.pose.transform.drop_frames import DropRandomFrames
+from sign_language_tools.pose.transform.edge_normalize import NormalizeEdgeLengths
 from sign_language_tools.pose.transform.filter import FilterEmpty, FilterLandmarks
 from sign_language_tools.pose.transform.flatten import Flatten
 from sign_language_tools.pose.transform.flip import HorizontalFlip
