@@ -27,6 +27,20 @@ class VideoComponent(Component):
 
 
 @dataclass()
+class EmptyComponent(Component):
+    width: int
+    height: int
+    background_color: tuple[int, int, int]
+
+    def to_frame(self, t: float, parent_frame: np.ndarray | None) -> np.ndarray:
+        return np.full(
+            (self.height, self.width, 3),
+            fill_value=[[self.background_color]],
+            dtype="uint8",
+        ) if parent_frame is None else parent_frame
+
+
+@dataclass()
 class SkeletonComponent(Component):
     poses: np.ndarray
     frame_lims: np.ndarray
@@ -86,9 +100,32 @@ class AnnotationComponent(Component):
         return parent_frame
 
 
+class PlaybackInfoComponent(EmptyComponent):
+    scale: float = 0.5
+    x: int = 10
+    y: int = 20
+
+    def to_frame(self, t: float, parent_frame: np.ndarray | None) -> np.ndarray:
+        frame = super().to_frame(t, parent_frame)
+        current_frame_count = round(t * self.fps)
+        cv2.putText(
+            frame,
+            f"FPS={self.fps} ; Frame={current_frame_count} ; T={t:.2f}s",
+            (self.x, self.y),
+            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale=self.scale,
+            color=(255, 255, 255),
+            thickness=1,
+            lineType=cv2.LINE_AA,
+        )
+        return frame
+
+
 class VideoPlayer:
     def __init__(self):
         self.components: list[Component] = []
+        self.default_fps = 24
+        self.default_size = (800, 600)
 
     def attach_video(
         self,
@@ -102,6 +139,8 @@ class VideoPlayer:
         fps = cap.get(cv2.CAP_PROP_FPS) if fps is None else fps
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.default_fps = fps
+        self.default_size = (width, height)
         cap.release()
         self.components.append(
             VideoComponent(
@@ -115,16 +154,44 @@ class VideoPlayer:
             )
         )
 
+    def attach_empty(
+        self,
+        width: int | None = None,
+        height: int | None = None,
+        name: str | None = None,
+        parent_name: str | None = None,
+        fps: float | None = None,
+        background_color: tuple[int, int, int] = (0, 0, 0),
+    ):
+        width = width if width is not None else self.default_size[0]
+        height = height if height is not None else self.default_size[1]
+        fps = fps if fps is not None else self.default_fps
+        name = str(uuid4()) if name is None else name
+        component = EmptyComponent(
+            name=name,
+            fps=fps,
+            width=width,
+            height=height,
+            background_color=background_color,
+            speed=1.0,
+            children=[],
+        )
+        if parent_name is None:
+            self.components.append(component)
+        else:
+            parent = self._get_component_by_name(parent_name)
+            parent.children.append(component)
+
     def attach_poses(
         self,
         pose_seq: np.ndarray,
         edges: list[tuple[int, int]] | None = None,
         name: str | None = None,
         parent_name: str | None = None,
-        fps: float = 24.0,
+        fps: float | None = None,
         speed: float = 1.0,
-        x_lim: tuple[int, int] = (0, 800),
-        y_lim: tuple[int, int] = (0, 600),
+        x_lim: tuple[int, int] | None = None,
+        y_lim: tuple[int, int] | None = None,
         vertex_x_lim: tuple[float, float] = (0.0, 1.0),
         vertex_y_lim: tuple[float, float] = (0.0, 1.0),
         vertex_color: tuple[int, int, int] = (255, 0, 0),
@@ -132,9 +199,10 @@ class VideoPlayer:
         vertex_width: int = 1,
         edge_width: int = 1,
     ):
-        if name is None:
-            name = str(uuid4()) if name is None else name
-
+        name = str(uuid4()) if name is None else name
+        fps = self.default_fps if fps is None else fps
+        x_lim = (0, self.default_size[0]) if x_lim is None else x_lim
+        y_lim = (0, self.default_size[1]) if y_lim is None else y_lim
         component = SkeletonComponent(
             name=name,
             edges=edges,
@@ -162,13 +230,14 @@ class VideoPlayer:
         labels: list[str] | None = None,
         name: str | None = None,
         parent_name: str | None = None,
-        fps: float = 24.0,
+        fps: float | None = None,
         speed: float = 1.0,
         x_lim: tuple[int, int] = (0, 300),
         y_lim: tuple[int, int] = (0, 200),
     ):
         name = str(uuid4()) if name is None else name
-        segments = segments.astype("float32")
+        fps = self.default_fps if fps is None else fps
+        segments = segments[:, :2].astype("float32")
         if unit == "ms":
             segments /= 1000
         elif unit == "frame":
@@ -185,6 +254,33 @@ class VideoPlayer:
             frame_lims=np.array([x_lim, y_lim], dtype="int32"),
             t_lims=np.array([[-4.0, 4.0], [0.0, 1.0]]),
             children=[],
+        )
+        if parent_name is None:
+            self.components.append(component)
+        else:
+            parent = self._get_component_by_name(parent_name)
+            parent.children.append(component)
+
+    def attach_playback_info(
+            self,
+            name: str | None = None,
+            parent_name: str | None = None,
+            fps: float | None = None,
+            background_color: tuple[int, int, int] = (0, 0, 0),
+            speed: float = 1.0,
+            width: int = 300,
+            height: int = 100,
+    ):
+        name = str(uuid4()) if name is None else name
+        fps = self.default_fps if fps is None else fps
+        component = PlaybackInfoComponent(
+            name=name,
+            fps=fps,
+            speed=speed,
+            children=[],
+            width=width,
+            height=height,
+            background_color=background_color,
         )
         if parent_name is None:
             self.components.append(component)
@@ -228,8 +324,10 @@ class VideoPlayer:
         if isinstance(component, VideoComponent):
             assert stream is not None
             frame = stream.read()
-        elif isinstance(component, SkeletonComponent) or isinstance(
-            component, AnnotationComponent
+        elif (
+            isinstance(component, SkeletonComponent)
+            or isinstance(component, AnnotationComponent)
+            or isinstance(component, EmptyComponent)
         ):
             frame = component.to_frame(t, parent_frame=parent_frame)
         else:
