@@ -20,4 +20,4 @@ class RandomRelativeMoveSegments(Transform):
     def __call__(self, segments: np.ndarray) -> np.ndarray:
         lengths = segments[:, 1] - segments[:, 0]
         dx = (self.std * np.random.randn(lengths.shape[0])) * lengths
-        return segments + dx[:, None]
+        return (segments + dx[:, None]).round().astype('int32')
