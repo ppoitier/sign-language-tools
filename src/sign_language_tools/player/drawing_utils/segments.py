@@ -74,6 +74,7 @@ def draw_segments(
     segment_color: tuple[int, int, int] = (0, 200, 0),
     text_color: tuple[int, int, int] = (255, 255, 255),
     n_text_lines: int = 4,
+    filled: bool = False,
 ):
     t_lims = t_lims.copy()
     t_lims[0] += t
@@ -98,7 +99,7 @@ def draw_segments(
                 (x_start, y_start),
                 (x_end, y_end),
                 segment_color,
-                1,
+                -1 if filled else 1,
             )
             if labels is not None:
                 label = labels[index]

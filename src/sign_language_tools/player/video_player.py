@@ -81,6 +81,11 @@ class AnnotationComponent(Component):
     labels: list[str] | None
     frame_lims: np.ndarray
     t_lims: np.ndarray
+    segment_color: tuple[int, int, int]
+    text_color: tuple[int, int, int]
+    ticks_color: tuple[int, int, int]
+    background_color: tuple[int, int, int] | None
+    filled: bool
 
     def to_frame(self, t: float, parent_frame: np.ndarray | None) -> np.ndarray:
         default_size = self.frame_lims[:, 1] - self.frame_lims[:, 0]
@@ -96,6 +101,11 @@ class AnnotationComponent(Component):
             t_lims=self.t_lims,
             frame_lims=self.frame_lims,
             labels=self.labels,
+            segment_color=self.segment_color,
+            text_color=self.text_color,
+            background_color=self.background_color,
+            filled=self.filled,
+            ticks_color=self.ticks_color,
         )
         return parent_frame
 
@@ -234,6 +244,11 @@ class VideoPlayer:
         speed: float = 1.0,
         x_lim: tuple[int, int] = (0, 300),
         y_lim: tuple[int, int] = (0, 200),
+        segment_color: tuple[int, int, int] = (0, 255, 0),
+        text_color: tuple[int, int, int] = (255, 255, 255),
+        background_color: tuple[int, int, int] | None = None,
+        ticks_color: tuple[int, int, int] = (255, 255, 255),
+        filled: bool = False,
     ):
         name = str(uuid4()) if name is None else name
         fps = self.default_fps if fps is None else fps
@@ -253,6 +268,11 @@ class VideoPlayer:
             labels=labels,
             frame_lims=np.array([x_lim, y_lim], dtype="int32"),
             t_lims=np.array([[-4.0, 4.0], [0.0, 1.0]]),
+            segment_color=segment_color,
+            text_color=text_color,
+            background_color=background_color,
+            filled=filled,
+            ticks_color=ticks_color,
             children=[],
         )
         if parent_name is None:
