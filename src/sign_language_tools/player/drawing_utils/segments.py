@@ -17,7 +17,7 @@ def draw_timeline_details(
         [
             [t_lims[0, 0], y_timeline],
             [t_lims[0, 1], y_timeline],
-            [t, 0.5],
+            [t, 0.0],
             [t, y_timeline],
             [t - 1, 0.5],
             [t - 1, y_timeline],
@@ -27,9 +27,9 @@ def draw_timeline_details(
     )
     key_pos = to_frame_coords(key_pos, t_lims, frame_lims)
     cv2.line(frame, key_pos[0], key_pos[1], ticks_color, 3)
-    cv2.line(frame, key_pos[2], key_pos[3], ticks_color, 2)
-    cv2.line(frame, key_pos[4], key_pos[5], ticks_color, 2)
-    cv2.line(frame, key_pos[6], key_pos[7], ticks_color, 2)
+    cv2.line(frame, key_pos[2], key_pos[3], ticks_color, 1)
+    cv2.line(frame, key_pos[4], key_pos[5], ticks_color, 1)
+    cv2.line(frame, key_pos[6], key_pos[7], ticks_color, 1)
     cv2.putText(
         frame,
         "t",

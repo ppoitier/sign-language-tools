@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import cv2
 import numpy as np
-from vidgear.gears import VideoGear
+# from vidgear.gears import CamGear
 
 from sign_language_tools.player.drawing_utils.poses import draw_pose
 from sign_language_tools.player.drawing_utils.segments import draw_segments
@@ -24,6 +24,7 @@ class VideoComponent(Component):
     filepath: str
     width: int
     height: int
+    start_ms: int | None
 
 
 @dataclass()
@@ -143,6 +144,7 @@ class VideoPlayer:
         name: str | None = None,
         fps: float | None = None,
         speed: float = 1.0,
+        start_ms: int | None = None,
     ):
         name = Path(filepath).stem if name is None else name
         cap = cv2.VideoCapture(filepath)
@@ -161,6 +163,7 @@ class VideoPlayer:
                 width=width,
                 height=height,
                 children=[],
+                start_ms=start_ms,
             )
         )
 
@@ -329,7 +332,8 @@ class VideoPlayer:
     def _display_component(
         self,
         component: Component,
-        stream: VideoGear | None,
+        # stream: CamGear | None,
+        stream: cv2.VideoCapture | None,
         t: float,
         last_timestamp: float,
         current_timestamp: float,
@@ -343,7 +347,11 @@ class VideoPlayer:
 
         if isinstance(component, VideoComponent):
             assert stream is not None
-            frame = stream.read()
+            if component.start_ms is not None:
+                print('MOVE')
+                stream.set(cv2.CAP_PROP_POS_MSEC, component.start_ms)
+                component.start_ms = None
+            _, frame = stream.read()
         elif (
             isinstance(component, SkeletonComponent)
             or isinstance(component, AnnotationComponent)
@@ -380,9 +388,11 @@ class VideoPlayer:
 
         for component in self.components:
             if isinstance(component, VideoComponent):
-                video_streams[component.name] = VideoGear(
-                    source=component.filepath
-                ).start()
+                # stream = CamGear(
+                #     source=component.filepath
+                # ).start()
+                stream = cv2.VideoCapture(component.filepath)
+                video_streams[component.name] = stream
             last_timestamps[component.name] = time() * 1000
             current_frame_nbs[component.name] = 0
 
@@ -416,14 +426,27 @@ class VideoPlayer:
                 paused = not paused
             # right arrow
             elif key == 65363:
-                if global_speed <= 16:
-                    global_speed *= 2
+                ...
+                # if global_speed <= 16:
+                #     global_speed *= 2
             # left arrow
             elif key == 65361:
-                if global_speed > speed:
-                    global_speed //= 2
+                offset = 10
+                for stream in video_streams.values():
+                    # current_time = stream.stream.get(cv2.CAP_PROP_POS_MSEC)
+                    current_time = stream.get(cv2.CAP_PROP_POS_MSEC)
+                    new_time = max(current_time - 10000, 0)
+                    # stream.stream.set(cv2.CAP_PROP_POS_MSEC, new_time)
+                    stream.set(cv2.CAP_PROP_POS_MSEC, new_time)
+                for component in self.components:
+                    # Change current frame of components
+                    current_frame_nbs[component.name] = max(0, current_frame_nbs[component.name] - int(offset * component.fps))
+
+                # if global_speed > speed:
+                #     global_speed //= 2
 
         # Clear the memory, close the windows and close the video streams
         cv2.destroyAllWindows()
         for stream in video_streams.values():
-            stream.stop()
+            # stream.stop()
+            stream.release()
