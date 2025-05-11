@@ -39,9 +39,9 @@ class LinearBoundaryOffset(Transform):
         )
         if len(segments) == 0:
             return time_series
-        segments = segments[segments[:, 0].argsort()]
+        segments = segments[segments[:, 0].argsort()].copy()
         time_indices = np.arange(self.sequence_length)
-        for start, end in segments:
+        for start, end in segments[:, :2]:
             start_idx = int(start)
             end_idx = int(end)
             if start_idx >= self.sequence_length:

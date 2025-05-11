@@ -49,8 +49,35 @@ class MergeSegmentsOnTransition(Transform):
         return new_segments[new_segments[:, 0].argsort(axis=0)]
 
 
+class MergeSegments(Transform):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, segments: np.ndarray) -> np.ndarray:
+        if segments.shape[0] < 2:
+            return segments
+        segments = segments[segments[:, 0].argsort(axis=0)].copy()
+        merged_segments_list = []
+        if segments.shape[0] == 0:  # Handle empty input after potential filtering
+            return np.array([])
+        current_merged_start = segments[0, 0]
+        current_merged_end = segments[0, 1]
+        for i in range(1, segments.shape[0]):
+            next_start = segments[i, 0]
+            next_end = segments[i, 1]
+            # Merge condition: segment_B_start <= segment_A_end + 1
+            if next_start <= current_merged_end + 1:
+                current_merged_end = max(current_merged_end, next_end)
+            else:
+                merged_segments_list.append([current_merged_start, current_merged_end])
+                current_merged_start = next_start
+                current_merged_end = next_end
+        merged_segments_list.append([current_merged_start, current_merged_end])
+        return np.stack(merged_segments_list)
+
+
 if __name__ == "__main__":
-    segments = np.array([
+    _segments = np.array([
         [2, 5, 1],
         [6, 12, 2],
         [14, 17, 0],
@@ -58,6 +85,6 @@ if __name__ == "__main__":
         [67, 78, 3],
     ])
 
-    transform = MergeSegmentsOnTransition([(1, 2)], new_value=45)
-    segments = transform(segments)
-    print(segments)
+    transform = MergeSegments()
+    _segments = transform(_segments)
+    print(_segments)
