@@ -20,5 +20,6 @@ from sign_language_tools.pose.transform.smooth import SavitchyGolayFiltering
 from sign_language_tools.pose.transform.split import Split
 from sign_language_tools.pose.transform.temporal_crop import TemporalCrop, TemporalRandomCrop
 from sign_language_tools.pose.transform.temporal_scale import TemporalScale, RandomTemporalScale
+from sign_language_tools.pose.transform.to_img import ToRGBImage
 from sign_language_tools.pose.transform.translation import Translation, RandomTranslation
 from sign_language_tools.pose.transform.padding import Padding
