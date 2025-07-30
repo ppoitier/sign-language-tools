@@ -25,7 +25,7 @@ def extract_poses_from_video(
     if not os.path.isfile(video_path):
         raise FileNotFoundError("Video file not found.")
 
-    landmarks = {
+    landmarks: dict[str, list[np.ndarray]] = {
         "face": [],
         "pose": [],
         "left_hand": [],
@@ -39,10 +39,10 @@ def extract_poses_from_video(
         options = {
             'static_image_mode': False,
             'model_complexity': 1,
-            'refine_face_landmarks': True,
+            'refine_face_landmarks': False,
             'smooth_landmarks': True,
-            'min_detection_confidence': 0.5,
-            'min_tracking_confidence': 0.5,
+            'min_detection_confidence': 0.2,
+            'min_tracking_confidence': 0.2,
             'enable_segmentation': False,
             'smooth_segmentation': False,
         }
@@ -68,18 +68,16 @@ def extract_poses_from_video(
             cv2.waitKey(1)
     cv2.destroyAllWindows()
     capture.stop()
-
     landmarks["face"] = np.stack(landmarks["face"], axis=0)
     landmarks["pose"] = np.stack(landmarks["pose"], axis=0)
     landmarks["left_hand"] = np.stack(landmarks["left_hand"], axis=0)
     landmarks["right_hand"] = np.stack(landmarks["right_hand"], axis=0)
-
     return landmarks
 
 
 if __name__ == "__main__":
     extract_poses_from_video(
-        video_path="/mnt/d/data/sign-languages/nii_jsl/sample.mp4",
+        video_path="D:/data/sign-languages/nii_jsl/sample.mp4",
         region_of_interest=(0, 397, 0, 305),
         show_progress=True,
     )
