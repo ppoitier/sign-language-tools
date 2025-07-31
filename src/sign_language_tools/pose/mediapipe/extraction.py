@@ -15,7 +15,6 @@ def _mediapipe_output_to_numpy_arrays(output, expected_nb_of_landmarks: int):
     return np.array([(lm.x, lm.y, lm.z) for lm in output.landmark], dtype='float16')
 
 
-
 def extract_poses_from_video(
     video_path: str,
     region_of_interest: tuple[int, int, int, int] = None,
@@ -68,13 +67,14 @@ def extract_poses_from_video(
             cv2.waitKey(1)
     cv2.destroyAllWindows()
     capture.stop()
-    print('left hand shapes')
-    for array in landmarks["left_hand"]:
-        print(array.shape)
     landmarks["face"] = np.stack(landmarks["face"], axis=0)
+    print(landmarks['face'].shape)
     landmarks["pose"] = np.stack(landmarks["pose"], axis=0)
+    print(landmarks["pose"].shape)
     landmarks["left_hand"] = np.stack(landmarks["left_hand"], axis=0)
+    print(landmarks["left_hand"].shape)
     landmarks["right_hand"] = np.stack(landmarks["right_hand"], axis=0)
+    print(landmarks["right_hand"].shape)
     return landmarks
 
 
