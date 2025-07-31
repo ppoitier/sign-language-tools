@@ -60,16 +60,13 @@ def extract_poses_from_video(
                     region_of_interest[0] : region_of_interest[1],
                 ].copy()
             mp_results = holistic.process(frame)
-            landmarks["face"].append(_mediapipe_output_to_numpy_arrays(mp_results.face_landmarks, 478))
+            landmarks["face"].append(_mediapipe_output_to_numpy_arrays(mp_results.face_landmarks, 468))
             landmarks["pose"].append(_mediapipe_output_to_numpy_arrays(mp_results.pose_landmarks, 33))
             landmarks["left_hand"].append(_mediapipe_output_to_numpy_arrays(mp_results.left_hand_landmarks, 21))
             landmarks["right_hand"].append(_mediapipe_output_to_numpy_arrays(mp_results.right_hand_landmarks, 21))
             cv2.waitKey(1)
     cv2.destroyAllWindows()
     capture.stop()
-    print("FACE")
-    for array in landmarks["face"]:
-        print(array.shape)
     landmarks["face"] = np.stack(landmarks["face"], axis=0)
     landmarks["pose"] = np.stack(landmarks["pose"], axis=0)
     landmarks["left_hand"] = np.stack(landmarks["left_hand"], axis=0)
