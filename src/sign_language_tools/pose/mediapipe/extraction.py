@@ -68,6 +68,9 @@ def extract_poses_from_video(
             cv2.waitKey(1)
     cv2.destroyAllWindows()
     capture.stop()
+    print('pose shapes')
+    for array in landmarks["pose"]:
+        print(array.shape)
     landmarks["face"] = np.stack(landmarks["face"], axis=0)
     landmarks["pose"] = np.stack(landmarks["pose"], axis=0)
     landmarks["left_hand"] = np.stack(landmarks["left_hand"], axis=0)
