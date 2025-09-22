@@ -23,3 +23,28 @@ class MinMaxNormalization(Transform):
             where=scaling_factors != 0,
             out=np.zeros_like(pose_sequence),
         )
+
+
+class FixedResolutionNormalization(Transform):
+    def __init__(self, width: int, height: int):
+        super().__init__()
+        self.resolution = np.array([width, height], dtype=np.float32)
+        assert width > 0 and height > 0, "Both width and height must be greater than 0."
+
+    def __call__(self, pose_sequence: np.ndarray) -> np.ndarray:
+        """
+        Normalizes a pose sequence to the range [-1, 1] based on a fixed resolution.
+
+        @Args
+            pose_sequence: A numpy array of shape (T, L, 2) where T is the number of frames,
+                           L is the number of landmarks, and the last dimension holds (x, y).
+
+        @Returns
+            normalized_pose_sequence: The normalized pose sequence.
+        """
+
+        # Apply the normalization formula in a single vectorized operation
+        # 1. Divide x by width and y by height
+        # 2. Subtract 0.5 to center around zero
+        # 3. Multiply by 2 to scale to the range [-1, 1]
+        return 2 * ((pose_sequence / self.resolution) - 0.5)

@@ -9,7 +9,7 @@ from sign_language_tools.pose.transform.flatten import Flatten
 from sign_language_tools.pose.transform.flip import HorizontalFlip
 from sign_language_tools.pose.transform.interpolate import InterpolateMissing
 from sign_language_tools.pose.transform.noise import GaussianNoise
-from sign_language_tools.pose.transform.normalize import MinMaxNormalization, Standardization
+from sign_language_tools.pose.transform.normalize import MinMaxNormalization, Standardization, FixedResolutionNormalization
 from sign_language_tools.pose.transform.optical_flow import ToOpticalFlow
 from sign_language_tools.pose.transform.padding import Padding
 from sign_language_tools.pose.transform.resample import Resample, RandomResample
