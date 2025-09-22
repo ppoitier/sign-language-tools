@@ -22,6 +22,7 @@ class MapTransform(Transform):
             ])
 
         if isinstance(x, dict):
+            x = dict(**x)
             self.transforms: dict
             for key in list(self.transforms.keys()):
                 transform = self.transforms[key]
