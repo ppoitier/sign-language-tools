@@ -5,7 +5,7 @@ from sign_language_tools.pose.transform.drop_coordinates import DropCoordinates
 from sign_language_tools.pose.transform.drop_frames import DropRandomFrames
 from sign_language_tools.pose.transform.edge_normalize import NormalizeEdgeLengths, NormalizeToUnitaryEdge
 from sign_language_tools.pose.transform.filter import FilterEmpty, FilterLandmarks
-from sign_language_tools.pose.transform.flatten import Flatten
+from sign_language_tools.pose.transform.flatten import Flatten, Unflatten
 from sign_language_tools.pose.transform.flip import HorizontalFlip
 from sign_language_tools.pose.transform.interpolate import InterpolateMissing
 from sign_language_tools.pose.transform.noise import GaussianNoise
