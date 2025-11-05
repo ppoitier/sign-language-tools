@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from time import time
 from uuid import uuid4
+import os
 
 import cv2
 import numpy as np
@@ -146,6 +147,8 @@ class VideoPlayer:
         speed: float = 1.0,
         start_ms: int | None = None,
     ):
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f"Could not find video: {filepath}")
         name = Path(filepath).stem if name is None else name
         cap = cv2.VideoCapture(filepath)
         fps = cap.get(cv2.CAP_PROP_FPS) if fps is None else fps
@@ -348,8 +351,7 @@ class VideoPlayer:
         if isinstance(component, VideoComponent):
             assert stream is not None
             if component.start_ms is not None:
-                print('MOVE')
-                stream.set(cv2.CAP_PROP_POS_MSEC, component.start_ms)
+                stream.set(cv2.CAP_PROP_POS_FRAMES, int(component.start_ms / 1000 * component.fps))
                 component.start_ms = None
             _, frame = stream.read()
         elif (
