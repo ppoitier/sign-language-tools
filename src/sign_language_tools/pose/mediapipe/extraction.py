@@ -20,7 +20,7 @@ def extract_poses_from_video(
     region_of_interest: tuple[int, int, int, int] = None,
     show_progress: bool = False,
     options=None,
-):
+) -> dict[str, np.ndarray]:
     if not os.path.isfile(video_path):
         raise FileNotFoundError("Video file not found.")
 
