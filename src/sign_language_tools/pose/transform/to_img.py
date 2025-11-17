@@ -5,7 +5,11 @@ from sign_language_tools.pose.transform.functional.image import pose_sequence_to
 
 
 class ToRGBImage(Transform):
-    def __init__(self, normalize_landmarks_signals: bool = False, fill_z_with_zero: bool = True):
+    def __init__(
+            self,
+            normalize_landmarks_signals: bool = False,
+            fill_z_with_zero: bool = True,
+    ):
         super().__init__()
         self.normalize_landmarks_signals = normalize_landmarks_signals
         self.fill_z_with_zero = fill_z_with_zero

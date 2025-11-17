@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def pose_sequence_to_img(poses: np.ndarray) -> np.ndarray:
@@ -9,5 +8,13 @@ def pose_sequence_to_img(poses: np.ndarray) -> np.ndarray:
 
 
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
     _poses = np.load("D:/data/sign-languages/bobsl/poses/pose/5085344787448740525_809582_870529.npy")
-    pose_sequence_to_img(_poses)
+    img = pose_sequence_to_img(_poses)
+
+    print(img.shape)
+
+    plt.figure()
+    plt.imshow(img[:, :100])
+    plt.show()
