@@ -38,7 +38,7 @@ def extract_poses_from_video(
         options = {
             'static_image_mode': False,
             'model_complexity': 1,
-            'refine_face_landmarks': False,
+            'refine_face_landmarks': True,
             'smooth_landmarks': True,
             'min_detection_confidence': 0.2,
             'min_tracking_confidence': 0.2,
@@ -60,7 +60,7 @@ def extract_poses_from_video(
                     region_of_interest[0] : region_of_interest[1],
                 ].copy()
             mp_results = holistic.process(frame)
-            landmarks["face"].append(_mediapipe_output_to_numpy_arrays(mp_results.face_landmarks, 468))
+            landmarks["face"].append(_mediapipe_output_to_numpy_arrays(mp_results.face_landmarks, 478))
             landmarks["pose"].append(_mediapipe_output_to_numpy_arrays(mp_results.pose_landmarks, 33))
             landmarks["left_hand"].append(_mediapipe_output_to_numpy_arrays(mp_results.left_hand_landmarks, 21))
             landmarks["right_hand"].append(_mediapipe_output_to_numpy_arrays(mp_results.right_hand_landmarks, 21))

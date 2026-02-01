@@ -1,31 +1,28 @@
-from sign_language_tools.pose.mediapipe.facemesh import FACEMESH_CONTOURS
-from sign_language_tools.pose.mediapipe.edges import *
-
-__all__ = [
-    'LIPS_VERTICES',
-    'HAND_VERTICES',
-    'UPPER_POSE_VERTICES',
-    'LOWER_POSE_VERTICES',
-    'POSE_VERTICES',
-    'FACE_VERTICES',
-    'FACEMESH_CONTOURS_VERTICES',
-]
+from sign_language_tools.pose.mediapipe.facemesh import (
+    FACEMESH_LIPS,
+    FACEMESH_LEFT_EYE,
+    FACEMESH_RIGHT_EYE,
+    FACEMESH_LEFT_IRIS,
+    FACEMESH_RIGHT_IRIS,
+    FACEMESH_LEFT_EYEBROW,
+    FACEMESH_RIGHT_EYEBROW,
+)
 
 
 def _vertices_from_edges(edges):
-    return set(sum(edges, ()))
+    return tuple(sorted(set(sum(edges, ()))))
 
 
-LIPS_VERTICES = _vertices_from_edges(LIPS_EDGES)
+LIPS_VERTICES = _vertices_from_edges(FACEMESH_LIPS)
 
-HAND_VERTICES = _vertices_from_edges(HAND_EDGES)
+LEFT_EYE_VERTICES = _vertices_from_edges(FACEMESH_LEFT_EYE)
+RIGHT_EYE_VERTICES = _vertices_from_edges(FACEMESH_RIGHT_EYE)
 
-UPPER_POSE_VERTICES = _vertices_from_edges(UPPER_POSE_EDGES)
+LEFT_IRIS_VERTICES = _vertices_from_edges(FACEMESH_LEFT_IRIS)
+RIGHT_IRIS_VERTICES = _vertices_from_edges(FACEMESH_RIGHT_IRIS)
 
-LOWER_POSE_VERTICES = _vertices_from_edges(LOWER_POSE_EDGES)
+LEFT_EYEBROW_VERTICES = _vertices_from_edges(FACEMESH_LEFT_EYEBROW)
+RIGHT_EYEBROW_VERTICES = _vertices_from_edges(FACEMESH_RIGHT_EYEBROW)
 
-POSE_VERTICES = _vertices_from_edges(POSE_EDGES)
-
-FACE_VERTICES = _vertices_from_edges(FACE_EDGES)
-
-FACEMESH_CONTOURS_VERTICES = _vertices_from_edges(FACEMESH_CONTOURS)
+LEFT_FULL_EYE_VERTICES = LEFT_EYE_VERTICES + LEFT_IRIS_VERTICES + LEFT_EYEBROW_VERTICES
+RIGHT_FULL_EYE_VERTICES = RIGHT_EYE_VERTICES + RIGHT_IRIS_VERTICES + RIGHT_EYEBROW_VERTICES
