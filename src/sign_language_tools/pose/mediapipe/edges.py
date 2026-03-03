@@ -6,6 +6,7 @@ __all__ = [
     "EYE_EDGES",
     "IRIS_EDGES",
     "EYEBROW_EDGES",
+    "FULL_EYE_EDGES",
     "HAND_EDGES",
     "UPPER_POSE_EDGES",
     "LOWER_POSE_EDGES",
