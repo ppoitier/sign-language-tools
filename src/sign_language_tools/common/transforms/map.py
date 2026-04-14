@@ -1,10 +1,10 @@
-from typing import Union
+from typing import Union, Callable, Any
 
 from sign_language_tools.core.transform import Transform
 
 
 class MapTransform(Transform):
-    def __init__(self, transforms: Union[list[callable], dict[any, callable]]):
+    def __init__(self, transforms: Union[list[Callable], dict[Any, Callable]]):
         super().__init__()
         self.transforms = transforms
 
@@ -16,10 +16,12 @@ class MapTransform(Transform):
 
         if isinstance(x, list) or isinstance(x, tuple):
             self.transforms: list
-            return tuple([
-                transform(xx) if transform is not None else xx
-                for xx, transform in zip(x, self.transforms)
-            ])
+            return tuple(
+                [
+                    transform(xx) if transform is not None else xx
+                    for xx, transform in zip(x, self.transforms)
+                ]
+            )
 
         if isinstance(x, dict):
             x = dict(**x)
@@ -34,7 +36,7 @@ class MapTransform(Transform):
 
 
 class ApplyToAll(Transform):
-    def __init__(self, transform: callable):
+    def __init__(self, transform: Callable):
         super().__init__()
         self.transform = transform
 
