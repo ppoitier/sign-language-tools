@@ -1,4 +1,7 @@
-from math import ceil, floor
+import numpy as np
+
+from sign_language_tools.core.transform import Transform
+
 
 import numpy as np
 
@@ -6,29 +9,30 @@ from sign_language_tools.core.transform import Transform
 
 
 class RemoveOverlapping(Transform):
-    """Remove overlapping between segments by setting their boundaries to the midpoint
-    of the overlap and then add a minimum gap between them.
+    """Remove overlap between segments and enforce a minimum frame gap.
 
-    When two segments A and B overlap:
-    1. Find the midpoint between A[end] and B[start]
-    2. Set A[end] to midpoint - floor(min_gap/2)
-    3. Set B[start] to midpoint + ceil(min_gap/2)
+    Segments use inclusive-end convention: [start, end] covers frames
+    start, start+1, ..., end, so length = end - start + 1.
 
-    This ensures the minimum gap is evenly distributed around the midpoint.
-    When min_gap is odd, the extra unit is added to the later segment."""
+    Two segments A, B (sorted by start) are considered too close when
+    B.start - A.end <= min_gap. The boundary is placed near the midpoint
+    of the overlap/touch region; when min_gap is odd, the extra empty
+    frame falls on B's side.
+    """
 
     def __init__(self, min_gap: int = 0):
         super().__init__()
-        assert min_gap >= 0, "Minimum temporal gap must be positive."
+        assert min_gap >= 0, "Minimum temporal gap must be non-negative."
         self.min_gap = min_gap
 
     def __call__(self, segments: np.ndarray) -> np.ndarray:
         """
         Args:
-            segments: Array of shape (N, 2) that contains N segments (start, end).
+            segments: Array of shape (N, 2) or (N, K) with K > 2; only the
+                first two columns (start, end) are modified, extras pass through.
 
         Returns:
-            new_segments: Initial segments, but without overlapping between them.
+            Segments with overlaps resolved, sorted by start.
         """
         if len(segments) <= 1:
             return segments
@@ -36,12 +40,24 @@ class RemoveOverlapping(Transform):
         segments = segments[np.argsort(segments[:, 0])].copy()
         end_prev = segments[:-1, 1]
         start_next = segments[1:, 0]
-        overlaps = end_prev + self.min_gap >= start_next
-        if np.any(overlaps):
-            midpoints = (end_prev[overlaps] + start_next[overlaps] - 1) / 2
-            segments[:-1][overlaps, 1] = midpoints - floor(self.min_gap + 1 / 2)
-            segments[1:][overlaps, 0] = midpoints + ceil((self.min_gap + 1) / 2)
+        overlap_idx = np.where(start_next - end_prev <= self.min_gap)[0]
+
+        if len(overlap_idx) > 0:
+            # Midpoint of the contested region between end_prev and start_next.
+            midpoints = (end_prev[overlap_idx] + start_next[overlap_idx]) // 2
+
+            # A keeps frames up to (midpoint - left_pad), B starts at
+            # (midpoint + right_pad + 1). The +1 ensures at least one
+            # frame separates them when min_gap=0 (touching, not overlapping).
+            left_pad = self.min_gap // 2
+            right_pad = self.min_gap - left_pad
+
+            segments[overlap_idx, 1] = midpoints - left_pad
+            segments[overlap_idx + 1, 0] = midpoints + right_pad + 1
+
+            # Length clamp: under inclusive convention, length >= 1 means end >= start.
             segments[:, 1] = np.maximum(segments[:, 0], segments[:, 1])
+
         return segments
 
 

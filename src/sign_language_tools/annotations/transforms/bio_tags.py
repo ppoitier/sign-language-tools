@@ -3,32 +3,76 @@ from sign_language_tools.core.transform import Transform
 
 
 class BioTags(Transform):
-    def __init__(self, b_tag_size: int | float = 0.25):
+    """Split each segment into a Beginning tag followed by an Inside tag.
+
+    Segments use inclusive-end convention: [start, end] covers frames
+    start, ..., end. Each segment of length L produces:
+      * a B-tag covering [start, start + w - 1] with label `b_label`, and
+      * an I-tag covering [start + w, end] with label `i_label`,
+    where w is the B-tag width (either `width` or `round(relative_width * L)`,
+    minimum 1). If w >= L the I-tag is omitted, so single-frame segments
+    produce a B-tag only.
+    """
+
+    def __init__(
+        self,
+        width: int | None = None,
+        relative_width: float | None = None,
+        b_label: int = 1,
+        i_label: int = 2,
+    ):
+        if (width is None) == (relative_width is None):
+            raise ValueError(
+                "Exactly one of `width` or `relative_width` must be specified."
+            )
+        if width is not None and width < 1:
+            raise ValueError("`width` must be at least 1.")
+        if relative_width is not None and relative_width <= 0:
+            raise ValueError("`relative_width` must be positive.")
+
         super().__init__()
-        assert b_tag_size > 0, "B tags must be at least 1 unit long."
-        self.b_tag_size = b_tag_size
+        self.width = width
+        self.relative_width = relative_width
+        self.b_label = b_label
+        self.i_label = i_label
 
     def __call__(self, segments: np.ndarray) -> np.ndarray:
-        n_segments = segments.shape[0]
+        if segments.shape[0] == 0:
+            return np.zeros((0, 3), dtype=segments.dtype)
+
         starts = segments[:, 0]
         ends = segments[:, 1]
-        if isinstance(self.b_tag_size, float):
-            lengths = ends - starts + 1
-            b_tag_sizes = np.maximum(self.b_tag_size * lengths, 1).round().astype('int32')
+        lengths = ends - starts + 1
+
+        if self.width is not None:
+            b_widths = np.full(len(segments), self.width, dtype=np.int64)
         else:
-            b_tag_sizes = np.full(n_segments, fill_value=self.b_tag_size)
-        b_ends = np.minimum(starts + b_tag_sizes - 1, ends)
-        b_labels = np.ones(n_segments, dtype=segments.dtype)
-        i_starts = np.minimum(b_ends + 1, ends)
-        i_labels = 2 * b_labels
-        b_tags = np.stack([starts, b_ends, b_labels], axis=1)
-        i_tags = np.stack([i_starts, ends, i_labels], axis=1)
-        final_segments = np.concatenate([b_tags, i_tags], axis=0)
-        return final_segments[np.argsort(final_segments[:, 0])]
+            b_widths = np.maximum(
+                np.round(self.relative_width * lengths), 1
+            ).astype(np.int64)
+
+        b_ends = np.minimum(starts + b_widths - 1, ends)
+        b_tags = np.stack(
+            [starts, b_ends, np.full(len(segments), self.b_label)], axis=1
+        )
+
+        has_i = b_ends < ends
+        i_tags = np.stack(
+            [
+                b_ends[has_i] + 1,
+                ends[has_i],
+                np.full(has_i.sum(), self.i_label),
+            ],
+            axis=1,
+        )
+
+        out = np.concatenate([b_tags, i_tags], axis=0)
+        out = out[np.argsort(out[:, 0])]
+        return out.astype(segments.dtype)
 
 
 if __name__ == "__main__":
-    transform = BioTags(b_tag_size=1)
+    transform = BioTags(width=2)
     _segments = np.array(
         [
             [0, 6],
