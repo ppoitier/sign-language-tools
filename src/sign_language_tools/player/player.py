@@ -11,6 +11,8 @@ from .components import (
     PlaybackInfoComponent,
     SkeletonComponent,
     VideoComponent,
+    TimeSeriesComponent,
+    HeatmapComponent,
 )
 from .rendering import display_frame, render_tree
 from .utils import segments_to_seconds
@@ -253,6 +255,148 @@ class VideoPlayer:
             background_color=background_color,
             filled=filled,
             ticks_color=ticks_color,
+        )
+        self._attach(comp, parent_name)
+        return comp
+
+    def attach_time_series(
+        self,
+        values: np.ndarray,
+        name: str | None = None,
+        parent_name: str | None = None,
+        fps: float | None = None,
+        speed: float = 1.0,
+        x_lim: tuple[int, int] = (0, 300),
+        y_lim: tuple[int, int] = (0, 200),
+        value_range: tuple[float, float] = (0.0, 1.0),
+        channel_labels: list[str] | None = None,
+        channel_colors: list[tuple[int, int, int]] | None = None,
+        line_width: int = 1,
+        ticks_color: tuple[int, int, int] = (255, 255, 255),
+        background_color: tuple[int, int, int] | None = None,
+        show_timeline: bool = True,
+        show_legend: bool = True,
+    ) -> TimeSeriesComponent:
+        """Attach a 1-D time series (or multi-channel one) to the player.
+
+        Args:
+            values: Either a (T,) array or a (T, C) array of sample values.
+            name: Component name.  Auto-generated if None.
+            parent_name: If given, the time-series is drawn into this
+                component's frame; otherwise it becomes its own window.
+            fps: Sampling rate of *values*.  Defaults to the player's
+                ``default_fps`` (i.e. the video's frame rate, which is
+                usually what you want for per-frame predictions).
+            speed: Speed multiplier (kept for API symmetry; the drawing
+                itself is driven by the global clock).
+            x_lim, y_lim: Pixel region inside the host window/parent.
+            value_range: ``(v_min, v_max)`` mapped to the vertical extent.
+                Defaults to ``(0, 1)``.
+            channel_labels: Optional legend labels (one per channel).
+            channel_colors: Optional BGR colours (one per channel; cycled).
+            line_width: Polyline thickness.
+            ticks_color: Colour for the time cursor / ticks.
+            background_color: If set, fill the panel before drawing.
+            show_timeline: Whether to draw the cursor and ±1 s ticks.
+            show_legend: Whether to draw the channel legend.
+
+        Example::
+
+            # Per-frame sign probability from a classifier
+            player.attach_time_series(
+                probs,                         # shape (T,) or (T, C)
+                parent_name="info_panel",
+                x_lim=(0, 800), y_lim=(0, 120),
+                value_range=(0.0, 1.0),
+                channel_labels=["P(sign)"],
+            )
+        """
+        comp = TimeSeriesComponent(
+            name=name or self._auto_name(),
+            fps=fps or self.default_fps,
+            speed=speed,
+            values=np.asarray(values, dtype="float32"),
+            frame_lims=np.array([x_lim, y_lim], dtype="int32"),
+            t_lims=np.array([[-4.0, 4.0], [0.0, 1.0]], dtype="float32"),
+            y_lim=value_range,
+            channel_labels=channel_labels,
+            channel_colors=channel_colors,
+            line_width=line_width,
+            ticks_color=ticks_color,
+            background_color=background_color,
+            show_timeline=show_timeline,
+            show_legend=show_legend,
+        )
+        self._attach(comp, parent_name)
+        return comp
+
+    def attach_heatmap(
+        self,
+        values: np.ndarray,
+        name: str | None = None,
+        parent_name: str | None = None,
+        fps: float | None = None,
+        speed: float = 1.0,
+        x_lim: tuple[int, int] = (0, 300),
+        y_lim: tuple[int, int] = (0, 200),
+        value_range: tuple[float, float] | None = None,
+        colormap: int = cv2.COLORMAP_VIRIDIS,
+        ticks_color: tuple[int, int, int] = (255, 255, 255),
+        background_color: tuple[int, int, int] = (0, 0, 0),
+        show_timeline: bool = True,
+        show_freq_axis: bool = False,
+        freq_lim: tuple[float, float] | None = None,
+        freq_label: str = "",
+    ) -> HeatmapComponent:
+        """Attach a 2-D heatmap (e.g. mel spectrogram) to the player.
+
+        Args:
+            values: ``(T, F)`` array — time-major.  Feature 0 ends up at the
+                bottom of the panel (standard spectrogram orientation).
+            name: Component name.  Auto-generated if None.
+            parent_name: Parent component, or None for a top-level window.
+            fps: Sample rate along the time axis.  Defaults to the player's
+                ``default_fps``.
+            speed: Speed multiplier (kept for API symmetry).
+            x_lim, y_lim: Pixel region inside the host window/parent.
+            value_range: ``(v_min, v_max)`` mapped to the colormap.  None
+                means auto-fit from the global min/max — stable across
+                playback.
+            colormap: OpenCV colormap constant.
+            ticks_color: Colour for the time cursor / ticks.
+            background_color: Region fill before drawing.
+            show_timeline: Whether to draw the cursor and ±1 s ticks.
+            show_freq_axis: If True, write small axis labels on the left.
+            freq_lim: ``(f_min, f_max)`` used for the axis label only.
+            freq_label: Unit string (e.g. ``"mel"``, ``"Hz"``).
+
+        Example::
+
+            player.attach_heatmap(
+                mel_spec,                    # shape (T, n_mels), e.g. (1000, 80)
+                parent_name="info_panel",
+                x_lim=(0, 800), y_lim=(130, 250),
+                value_range=(-1.0, 1.0),
+                show_freq_axis=True,
+                freq_lim=(0, 8000),
+                freq_label="Hz",
+            )
+        """
+        comp = HeatmapComponent(
+            name=name or self._auto_name(),
+            fps=fps or self.default_fps,
+            speed=speed,
+            values=np.asarray(values, dtype="float32"),
+            frame_lims=np.array([x_lim, y_lim], dtype="int32"),
+            t_lims=np.array([[-4.0, 4.0], [0.0, 1.0]], dtype="float32"),
+            v_lim=value_range,
+            colormap=colormap,
+            ticks_color=ticks_color,
+            background_color=background_color,
+            show_timeline=show_timeline,
+            show_freq_axis=show_freq_axis,
+            freq_lim=freq_lim,
+            freq_label=freq_label,
         )
         self._attach(comp, parent_name)
         return comp

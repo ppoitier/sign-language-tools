@@ -6,6 +6,7 @@ from .overlays import (
     SkeletonComponent,
 )
 from .video import VideoComponent
+from .time_series import TimeSeriesComponent, HeatmapComponent
 
 __all__ = [
     "Component",
@@ -14,4 +15,6 @@ __all__ = [
     "PlaybackInfoComponent",
     "SkeletonComponent",
     "VideoComponent",
+    "TimeSeriesComponent",
+    "HeatmapComponent",
 ]
