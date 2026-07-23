@@ -6,7 +6,7 @@ build-backend   = "setuptools.build_meta"
 
 [project]
 name = "sign-language-tools"
-version = "0.1.1"
+version = "1.0.0"
 description = "Python library containing various tools for sign language processing"
 readme = "README.md"
 authors = [
@@ -26,13 +26,20 @@ dependencies = [
     "numpy",
     "opencv-python",
     "pandas",
+    "plotly",
     "scipy",
     "scikit-learn",
+    "torch",
     "tqdm",
+    "vidgear",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 [project.optional-dependencies]
+video-backends = [
+    "av",
+    "decord",
+]
 dev = [
     "black",
     "pip-tools",

@@ -15,7 +15,7 @@ def non_maximum_suppression(proposals: np.ndarray, iou_threshold: float = 0.8) -
         iou_threshold: The IoU threshold used to filter out proposals that overlap too much.
 
     Returns:
-        remaining_proposals: A numpy array of shape (L, 3) that is a subset of the K initial proposals.
+        A numpy array of shape (L, 3) that is a subset of the K initial proposals.
     """
     selected_proposals = []
     proposals = proposals[proposals[:, 2].argsort()[::-1]]
@@ -27,7 +27,13 @@ def non_maximum_suppression(proposals: np.ndarray, iou_threshold: float = 0.8) -
     return np.array(selected_proposals)
 
 
-def soft_nms(proposals: np.ndarray, alpha: float = 0.4, t1: float = 0.5, t2: float = 0.9, n_proposals: int = 100):
+def soft_nms(
+    proposals: np.ndarray,
+    alpha: float = 0.4,
+    t1: float = 0.5,
+    t2: float = 0.9,
+    n_proposals: int = 100,
+) -> np.ndarray:
     """
     Filter out a set of segment proposals using the Soft Non-Maximum Suppression (soft NMS) algorithm
     with a gaussian decay.
@@ -41,7 +47,7 @@ def soft_nms(proposals: np.ndarray, alpha: float = 0.4, t1: float = 0.5, t2: flo
         n_proposals: Maximum number of retained proposals. Default = 100.
 
     Returns:
-        remaining_proposals: A numpy array of shape (L, 3) that is a subset of the K initial proposals.
+        A numpy array of shape (L, 3) that is a subset of the K initial proposals.
     """
     proposals = proposals[np.argsort(-proposals[:, 2])]
 
