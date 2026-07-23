@@ -1,82 +1,107 @@
-from vidgear.gears import CamGear
-import cv2
+from collections import defaultdict
+
 import numpy as np
-import os
 import mediapipe as mp
-from tqdm import tqdm
+from mediapipe.tasks.python.core.base_options import BaseOptions
+from mediapipe.tasks.python.vision import (
+    HolisticLandmarkerOptions,
+    HolisticLandmarker,
+    HolisticLandmarkerResult,
+    RunningMode,
+)
+
+from sign_language_tools.video.decoding import iterate_video_frames_using_vidgear
 
 
-mp_holistic = mp.solutions.holistic
+def load_holistic_landmarker(model_path: str, use_gpu: bool = False, options: HolisticLandmarkerOptions | None = None):
+    """Load a MediaPipe holistic landmarker for video inference.
 
+    Args:
+        model_path (str): Path to the holistic landmarker `.task` model file.
+        use_gpu (bool): Whether to run inference on GPU instead of CPU. Defaults to `False`.
+        options (HolisticLandmarkerOptions | None): Custom landmarker options. If `None`,
+            default options are used with the model running in `VIDEO` mode. Defaults to `None`.
 
-def _mediapipe_output_to_numpy_arrays(output, expected_nb_of_landmarks: int):
-    if output is None:
-        return np.full((expected_nb_of_landmarks, 3), fill_value=np.nan, dtype='float16')
-    return np.array([(lm.x, lm.y, lm.z) for lm in output.landmark], dtype='float16')
-
-
-def extract_poses_from_video(
-    video_path: str,
-    region_of_interest: tuple[int, int, int, int] = None,
-    show_progress: bool = False,
-    options=None,
-) -> dict[str, np.ndarray]:
-    if not os.path.isfile(video_path):
-        raise FileNotFoundError("Video file not found.")
-
-    landmarks: dict[str, list[np.ndarray]] = {
-        "face": [],
-        "pose": [],
-        "left_hand": [],
-        "right_hand": [],
-    }
-    capture = CamGear(source=video_path).start()
-    n_frames = int(capture.stream.get(cv2.CAP_PROP_FRAME_COUNT))
-    progress_bar = tqdm(range(n_frames), unit="frames", disable=not show_progress)
-
-    if options is None:
-        options = {
-            'static_image_mode': False,
-            'model_complexity': 1,
-            'refine_face_landmarks': True,
-            'smooth_landmarks': True,
-            'min_detection_confidence': 0.2,
-            'min_tracking_confidence': 0.2,
-            'enable_segmentation': False,
-            'smooth_segmentation': False,
-        }
-
-    with mp_holistic.Holistic(**options) as holistic:
-        for frame_nb in progress_bar:
-            # time_stamp_ms = int((frame_nb / frame_rate) * 1000)
-            frame = capture.read()
-            if frame is None:
-                progress_bar.write(f"Cannot read frame {frame_nb}.")
-                break
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            if region_of_interest is not None:
-                frame = frame[
-                    region_of_interest[2] : region_of_interest[3],
-                    region_of_interest[0] : region_of_interest[1],
-                ].copy()
-            mp_results = holistic.process(frame)
-            landmarks["face"].append(_mediapipe_output_to_numpy_arrays(mp_results.face_landmarks, 478))
-            landmarks["pose"].append(_mediapipe_output_to_numpy_arrays(mp_results.pose_landmarks, 33))
-            landmarks["left_hand"].append(_mediapipe_output_to_numpy_arrays(mp_results.left_hand_landmarks, 21))
-            landmarks["right_hand"].append(_mediapipe_output_to_numpy_arrays(mp_results.right_hand_landmarks, 21))
-            cv2.waitKey(1)
-    cv2.destroyAllWindows()
-    capture.stop()
-    landmarks["face"] = np.stack(landmarks["face"], axis=0)
-    landmarks["pose"] = np.stack(landmarks["pose"], axis=0)
-    landmarks["left_hand"] = np.stack(landmarks["left_hand"], axis=0)
-    landmarks["right_hand"] = np.stack(landmarks["right_hand"], axis=0)
-    return landmarks
-
-
-if __name__ == "__main__":
-    extract_poses_from_video(
-        video_path="D:/data/sign-languages/nii_jsl/sample.mp4",
-        region_of_interest=(0, 397, 0, 305),
-        show_progress=True,
+    Returns:
+        HolisticLandmarker: The initialized holistic landmarker, ready to process video frames.
+    """
+    base_options = BaseOptions(
+        model_asset_path=model_path,
+        delegate=BaseOptions.Delegate.GPU if use_gpu else BaseOptions.Delegate.CPU,
     )
+    options = HolisticLandmarkerOptions(
+        base_options=base_options,
+        running_mode=RunningMode.VIDEO,
+        min_face_detection_confidence=0.5,
+        min_face_suppression_threshold=0.5,
+        min_face_landmarks_confidence=0.5,
+        min_pose_detection_confidence=0.2,
+        min_pose_suppression_threshold=0.5,
+        min_pose_landmarks_confidence=0.2,
+        min_hand_landmarks_confidence=0.2,
+    ) if options is None else options
+    return HolisticLandmarker.create_from_options(options)
+
+
+def _landmarks_to_array(landmarks, n_expected_landmarks: int) -> np.ndarray:
+    """Convert a list of MediaPipe landmarks into an `(L, 3)` array.
+
+    Args:
+        landmarks: Sequence of MediaPipe landmark objects, each exposing `x`, `y` and `z`.
+        n_expected_landmarks (int): Number of landmarks expected for this landmark group
+            (e.g. 33 for pose, 21 for a hand, 478 for the face). If `landmarks` does not
+            contain exactly this many entries (e.g. because detection failed for the frame),
+            an array filled with `NaN` is returned instead.
+
+    Returns:
+        np.ndarray: Array of shape `(L, C)` with `L=n_expected_landmarks` and `C=3` (x, y, z),
+            dtype `float16`.
+    """
+    if len(landmarks) != n_expected_landmarks:
+        return np.full((n_expected_landmarks, 3), np.nan, dtype="float16")
+    array = np.array([[lm.x, lm.y, lm.z] for lm in landmarks], dtype="float16")
+    return array
+
+
+def extract_poses_from_video_file(
+    video_path: str,
+    holistic_landmarker: HolisticLandmarker,
+    show_progress=False,
+) -> dict[str, np.ndarray]:
+    """Extract holistic pose landmarks from every frame of a video file.
+
+    Args:
+        video_path (str): Path to the video file to process.
+        holistic_landmarker (HolisticLandmarker): Landmarker used to run detection on each
+            frame, e.g. as returned by [`load_holistic_landmarker`][sign_language_tools.pose.mediapipe.extraction.load_holistic_landmarker].
+        show_progress (bool): Whether to display a progress bar while iterating over the
+            video frames. Defaults to `False`.
+
+    Returns:
+        dict[str, np.ndarray]: Mapping from landmark group (`"pose"`, `"left_hand"`,
+            `"right_hand"`, `"face"`) to an array of shape `(T, L, C)`, with `T` the number
+            of frames, `L` the number of landmarks in the group and `C=3` (x, y, z).
+    """
+    poses = defaultdict(list)
+    for idx, (timestamp_ms, frame) in enumerate(
+        iterate_video_frames_using_vidgear(video_path, show_progress=show_progress)
+    ):
+        mp_img = mp.Image(mp.ImageFormat.SRGB, frame)
+        results: HolisticLandmarkerResult = holistic_landmarker.detect_for_video(
+            mp_img, timestamp_ms
+        )
+
+        poses["pose"].append(
+            _landmarks_to_array(results.pose_landmarks, n_expected_landmarks=33)
+        )
+        poses["left_hand"].append(
+            _landmarks_to_array(results.left_hand_landmarks, n_expected_landmarks=21)
+        )
+        poses["right_hand"].append(
+            _landmarks_to_array(results.right_hand_landmarks, n_expected_landmarks=21)
+        )
+        poses["face"].append(
+            _landmarks_to_array(results.face_landmarks, n_expected_landmarks=478)
+        )
+
+    return {k: np.stack(v, axis=0) for k, v in poses.items()}

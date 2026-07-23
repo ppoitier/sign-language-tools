@@ -1,3 +1,25 @@
+"""Vendored MediaPipe face mesh connectivity tables.
+
+Each constant is a tuple of `(start_index, end_index)` pairs, where indices
+refer to positions in the `(478, C)` face landmark array. These tables are
+copied verbatim from MediaPipe's `face_mesh_connections` module so this
+package does not depend on `mediapipe` internals; they should not be edited
+by hand. "Left"/"right" follow MediaPipe's convention, i.e. the subject's own
+left and right, not the viewer's.
+"""
+
+__all__ = [
+    "FACEMESH_TESSELATION",
+    "FACEMESH_LIPS",
+    "FACEMESH_LEFT_EYE",
+    "FACEMESH_LEFT_IRIS",
+    "FACEMESH_LEFT_EYEBROW",
+    "FACEMESH_RIGHT_EYE",
+    "FACEMESH_RIGHT_EYEBROW",
+    "FACEMESH_RIGHT_IRIS",
+    "FACEMESH_FACE_OVAL",
+    "FACEMESH_CONTOURS",
+]
 
 FACEMESH_TESSELATION = (
     (127, 34),  (34, 139),  (139, 127), (11, 0),    (0, 37),    (37, 11),
@@ -427,6 +449,7 @@ FACEMESH_TESSELATION = (
     (361, 401), (401, 288), (288, 361), (265, 372), (372, 353), (353, 265),
     (390, 339), (339, 249), (249, 390), (339, 448), (448, 255), (255, 339)
 )
+"""Full triangular mesh of the face (all ~468 mesh vertices)."""
 
 FACEMESH_LIPS = (
     (61, 146), (146, 91), (91, 181), (181, 84), (84, 17),
@@ -440,6 +463,7 @@ FACEMESH_LIPS = (
     (82, 13), (13, 312), (312, 311), (311, 310),
     (310, 415), (415, 308)
 )
+"""Contour of the lips (inner and outer boundary)."""
 
 FACEMESH_LEFT_EYE = (
     (263, 249), (249, 390), (390, 373), (373, 374),

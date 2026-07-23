@@ -1,3 +1,14 @@
+"""Edge (connectivity) definitions for MediaPipe hand, pose and face landmarks.
+
+Each constant is a tuple of `(start_index, end_index)` pairs, where the indices
+refer to positions in the corresponding landmark array (hand: `(21, C)`, pose:
+`(33, C)`, face: `(478, C)`). These are typically used to draw skeletons or
+build adjacency structures (e.g. graph-based models) over the landmarks.
+
+"Upper"/"lower" pose edges split the body pose skeleton into the upper body
+(arms, shoulders, face landmarks 0-10) and the lower body (hips and legs).
+"""
+
 from sign_language_tools.pose.mediapipe.facemesh import FACEMESH_CONTOURS
 
 
@@ -57,6 +68,8 @@ LIPS_EDGES = (
     (27, 39),
     (39, 26),
 )
+"""Edges of the lips contour, over the `LIPS_VERTICES`-scale local indexing
+(not the raw MediaPipe face mesh indices)."""
 
 EYE_EDGES = (
     (1, 0),
@@ -76,10 +89,17 @@ EYE_EDGES = (
     (8, 14),
     (14, 2),
 )
+"""Edges of a single eye contour, over the `LEFT_EYE_VERTICES`/`RIGHT_EYE_VERTICES`-scale
+local indexing (not the raw MediaPipe face mesh indices). Shared by both eyes since they
+have the same local topology."""
 
 IRIS_EDGES = ((0, 1), (1, 2), (2, 3), (3, 0))
+"""Edges of a single iris contour, over the `LEFT_IRIS_VERTICES`/`RIGHT_IRIS_VERTICES`-scale
+local indexing (not the raw MediaPipe face mesh indices). Shared by both irises."""
 
 EYEBROW_EDGES = ((0, 2), (2, 1), (1, 5), (5, 3), (7, 4), (4, 8), (8, 6), (6, 9))
+"""Edges of a single eyebrow contour, over the `LEFT_EYEBROW_VERTICES`/`RIGHT_EYEBROW_VERTICES`-scale
+local indexing (not the raw MediaPipe face mesh indices). Shared by both eyebrows."""
 
 FULL_EYE_EDGES = (
     (1, 0),
@@ -111,6 +131,9 @@ FULL_EYE_EDGES = (
     (28, 26),
     (26, 29),
 )
+"""Edges of a single eye, iris and eyebrow combined, over the
+`LEFT_FULL_EYE_VERTICES`/`RIGHT_FULL_EYE_VERTICES`-scale local indexing (not the raw
+MediaPipe face mesh indices). Shared by both sides."""
 
 HAND_EDGES = (
     (3, 4),
@@ -135,6 +158,8 @@ HAND_EDGES = (
     (11, 12),
     (7, 8),
 )
+"""Edges of the 21-landmark hand skeleton (wrist and the four joints of each finger),
+using the raw MediaPipe hand landmark indices. Shared by both hands."""
 
 UPPER_POSE_EDGES = (
     (15, 21),
@@ -160,6 +185,8 @@ UPPER_POSE_EDGES = (
     (11, 12),
     (13, 15),
 )
+"""Edges of the upper body: face (nose, eyes, ears, mouth), shoulders and arms, using
+the raw MediaPipe pose landmark indices (0-22)."""
 
 LOWER_POSE_EDGES = (
     (11, 23),
@@ -176,7 +203,12 @@ LOWER_POSE_EDGES = (
     (27, 31),
     (28, 32),
 )
+"""Edges of the lower body: hips and legs, using the raw MediaPipe pose landmark
+indices (11-32)."""
 
 POSE_EDGES = LOWER_POSE_EDGES + UPPER_POSE_EDGES
+"""Full body pose skeleton: `LOWER_POSE_EDGES` and `UPPER_POSE_EDGES` combined."""
 
 FACE_EDGES = FACEMESH_CONTOURS
+"""Face contours (lips, eyes, eyebrows and face outline), using the raw MediaPipe
+face mesh indices. Alias of [`FACEMESH_CONTOURS`][sign_language_tools.pose.mediapipe.facemesh.FACEMESH_CONTOURS]."""
