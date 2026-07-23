@@ -289,7 +289,8 @@ class VideoPlayer:
                 usually what you want for per-frame predictions).
             speed: Speed multiplier (kept for API symmetry; the drawing
                 itself is driven by the global clock).
-            x_lim, y_lim: Pixel region inside the host window/parent.
+            x_lim: Horizontal pixel region inside the host window/parent.
+            y_lim: Vertical pixel region inside the host window/parent.
             value_range: ``(v_min, v_max)`` mapped to the vertical extent.
                 Defaults to ``(0, 1)``.
             channel_labels: Optional legend labels (one per channel).
@@ -358,7 +359,8 @@ class VideoPlayer:
             fps: Sample rate along the time axis.  Defaults to the player's
                 ``default_fps``.
             speed: Speed multiplier (kept for API symmetry).
-            x_lim, y_lim: Pixel region inside the host window/parent.
+            x_lim: Horizontal pixel region inside the host window/parent.
+            y_lim: Vertical pixel region inside the host window/parent.
             value_range: ``(v_min, v_max)`` mapped to the colormap.  None
                 means auto-fit from the global min/max — stable across
                 playback.

@@ -1,5 +1,8 @@
+from typing import Any
+
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 
 
 __all__ = [
@@ -10,12 +13,12 @@ __all__ = [
 def plot_segments_on_timeline(
     segments: np.ndarray,
     labels: list[str] = None,
-    y_lim=(0, 0.5),
-    ax=None,
-    alpha=0.5,
-    colors=None,
-    cmap="tab20",
-    **kwargs,
+    y_lim: tuple[float, float] = (0, 0.5),
+    ax: Axes | None = None,
+    alpha: float = 0.5,
+    colors: Any = None,
+    cmap: str = "tab20",
+    **kwargs: Any,
 ):
     """Plot segments as colored spans on a timeline.
 

@@ -5,9 +5,9 @@ face landmarks produced by MediaPipe (see `results.face_landmarks` in
 [`extract_poses_from_video_file`][sign_language_tools.pose.mediapipe.extraction.extract_poses_from_video_file]).
 
 The vertex tuples are computed from the corresponding `FACEMESH_*` edge
-definitions in [`facemesh`][sign_language_tools.pose.mediapipe.facemesh] rather
-than listed by hand, so they always stay in sync with the edges: any vertex
-that appears in an edge is included, and duplicates are removed.
+definitions in `sign_language_tools.pose.mediapipe.facemesh` rather than
+listed by hand, so they always stay in sync with the edges: any vertex that
+appears in an edge is included, and duplicates are removed.
 
 "Left"/"right" follow MediaPipe's convention, i.e. the subject's own left and
 right, not the viewer's.
