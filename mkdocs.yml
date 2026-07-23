@@ -1,19 +1,49 @@
 site_name: Sign Language Tools
+repo_url: https://github.com/ppoitier/sign-language-tools
+repo_name: ppoitier/sign-language-tools
 
 theme:
   name: "material"
   palette:
     primary: cyan
+  features:
+    - navigation.sections
+    - content.code.copy
 
 plugins:
-  - mkdocstrings
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: false
+            show_root_heading: true
+            merge_init_into_class: true
+            show_if_no_docstring: false
+            separate_signature: true
+            show_signature_annotations: true
 
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.details
+  - toc:
+      permalink: true
+
+watch:
+  - src
+
+exclude_docs: |
+  old/
 
 nav:
   - Home: index.md
-  - Visualization: visualization.md
+  - Installation: installation.md
   - Pose: pose.md
-  - tutorials.md
-  - How-To Guides: how-to-guides.md
-  - reference.md
-  - explanation.md
+  - Video: video.md
+  - Video Player: player.md
+  - Annotations: annotations.md
+  - Common Transforms: common.md
+  - Working with sign-language-data-loading: data-loading.md
