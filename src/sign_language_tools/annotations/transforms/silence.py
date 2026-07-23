@@ -18,6 +18,21 @@ class CloseShortSilences(Transform):
     effects (where closing one gap might shift a boundary into another
     nearby gap) are not handled. In practice this only matters when
     `max_silence` is large relative to segment lengths.
+
+    Args:
+        max_silence: Maximum number of empty frames between two segments
+            for the gap to be closed. Must be non-negative.
+
+    Example:
+        >>> import numpy as np
+        >>> from sign_language_tools.annotations.transforms import CloseShortSilences
+        >>> segments = np.array([[0, 6], [8, 13], [25, 27], [30, 41]])  # (M, 2)
+        >>> transform = CloseShortSilences(max_silence=3)
+        >>> transform(segments)
+        array([[ 0,  7],
+               [ 8, 13],
+               [25, 28],
+               [29, 41]])
     """
 
     def __init__(self, max_silence: int):
@@ -26,6 +41,15 @@ class CloseShortSilences(Transform):
         self.max_silence = max_silence
 
     def __call__(self, segments: np.ndarray) -> np.ndarray:
+        """Closes short silences between consecutive segments.
+
+        Args:
+            segments: Array of shape `(M, 2)` containing the start and end
+                of `M` segments.
+
+        Returns:
+            The segments with short silences closed, sorted by start.
+        """
         if segments.shape[0] < 2:
             return segments.copy()
 

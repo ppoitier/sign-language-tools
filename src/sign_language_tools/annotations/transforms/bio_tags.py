@@ -12,6 +12,26 @@ class BioTags(Transform):
     where w is the B-tag width (either `width` or `round(relative_width * L)`,
     minimum 1). If w >= L the I-tag is omitted, so single-frame segments
     produce a B-tag only.
+
+    Args:
+        width: Fixed B-tag width, in frames. Exactly one of `width` or
+            `relative_width` must be specified.
+        relative_width: B-tag width as a fraction of each segment's
+            length, rounded to the nearest integer (minimum 1). Exactly
+            one of `width` or `relative_width` must be specified.
+        b_label: Label assigned to the B-tag (beginning) of each segment.
+        i_label: Label assigned to the I-tag (inside) of each segment.
+
+    Example:
+        >>> import numpy as np
+        >>> from sign_language_tools.annotations.transforms import BioTags
+        >>> segments = np.array([[0, 6], [8, 13]])  # (M, 2)
+        >>> transform = BioTags(width=2)
+        >>> transform(segments)
+        array([[ 0,  1,  1],
+               [ 2,  6,  2],
+               [ 8,  9,  1],
+               [10, 13,  2]])
     """
 
     def __init__(
@@ -37,6 +57,16 @@ class BioTags(Transform):
         self.i_label = i_label
 
     def __call__(self, segments: np.ndarray) -> np.ndarray:
+        """Splits each segment into B/I tags.
+
+        Args:
+            segments: Array of shape `(M, 2)` containing the start and end
+                of `M` segments.
+
+        Returns:
+            Array of shape `(M', 3)` containing the start, end, and label
+            of the resulting B/I tags, sorted by start.
+        """
         if segments.shape[0] == 0:
             return np.zeros((0, 3), dtype=segments.dtype)
 

@@ -4,6 +4,37 @@ from sign_language_tools.core.transform import Transform
 
 
 class FillBetween(Transform):
+    """Fills the gap between consecutive segments that form a transition.
+
+    Segments are sorted by start, then each adjacent pair is checked: if the
+    first segment's label equals `start_value` and the second's label
+    equals `end_value` (or the reverse, when `bidirectional` is True), a new
+    segment is created to cover the gap between them, labeled `fill_value`.
+
+    Args:
+        start_value: The label of the segment where the filling starts.
+        end_value: The label of the segment where the filling ends.
+        fill_value: The label to use for the newly created segments
+            that fill the gaps.
+        max_width: The maximum width (duration) of a gap to be filled.
+            If None, all identified gaps will be filled.
+        bidirectional: If True, also considers gaps between an `end_value`
+            segment followed by a `start_value` segment, not only the
+            reverse.
+
+    Example:
+        >>> import numpy as np
+        >>> from sign_language_tools.annotations.transforms import FillBetween
+        >>> segments = np.array([[2, 5, 1], [14, 17, 1], [30, 34, 1]])  # (M, 3)
+        >>> transform = FillBetween(start_value=1, end_value=1, fill_value=1)
+        >>> transform(segments)
+        array([[ 2,  5,  1],
+               [ 6, 13,  1],
+               [14, 17,  1],
+               [18, 29,  1],
+               [30, 34,  1]])
+    """
+
     def __init__(
         self,
         start_value: int = 1,
@@ -12,19 +43,6 @@ class FillBetween(Transform):
         max_width: int | None = None,
         bidirectional: bool = False,
     ):
-        """Initializes the FillBetween transform.
-
-        Args:
-            start_value: The label of the segments where the filling starts. Defaults to 1.
-            end_value: The label of the segments where the filling ends. Defaults to 1.
-            fill_value: The label to use for the newly created segments
-                that fill the gaps. Defaults to 1.
-            max_width: The maximum width (duration) of a gap to be filled.
-                If None, all identified gaps will be filled. Defaults to None.
-            bidirectional: If True, also considers gaps between 'end' and 'start' segments,
-                and not only from start to end. Defaults to False.
-        """
-
         super().__init__()
         self.start_value = start_value
         self.end_value = end_value
@@ -33,6 +51,15 @@ class FillBetween(Transform):
         self.bidirectional = bidirectional
 
     def __call__(self, segments: np.ndarray) -> np.ndarray:
+        """Fills the gaps between matching consecutive segments.
+
+        Args:
+            segments: Array of shape `(M, 3)` containing the start, end,
+                and label of `M` segments.
+
+        Returns:
+            The segments with filling segments inserted, sorted by start.
+        """
         if segments.shape[0] < 2:
             return segments
         segments = segments[segments[:, 0].argsort(axis=0)].copy()

@@ -4,11 +4,31 @@ from sign_language_tools.core.transform import Transform
 
 
 class SegmentsToFrameLabels(Transform):
-    """Render (N, 2) or (N, 3) segments as a per-frame label vector.
+    """Renders segments as a dense per-frame label vector.
 
-    For (N, 2) segments, all frames within a segment get `fill_label`.
-    For (N, 3) segments, the third column is used as the per-segment label.
-    Frames not covered by any segment get `background_label`.
+    Segments use inclusive-end convention: `[start, end]` covers frames
+    `start, ..., end`. For `(M, 2)` segments, all frames within a segment
+    get `fill_label`. For `(M, 3)` segments, the third column is used as
+    the per-segment label. Frames not covered by any segment get
+    `background_label`. When segments overlap, later segments (in array
+    order) overwrite earlier ones for the overlapping frames.
+
+    Args:
+        vector_size: Length of the output label vector. If None, inferred
+            from the segments as `max(end) + 1`. Pass explicitly when
+            frames may extend past the last annotated segment.
+        background_label: Label assigned to frames outside any segment.
+        fill_label: Label assigned to frames inside a segment when
+            `segments` has no label column (shape `(M, 2)`).
+        dtype: Output dtype of the label vector.
+
+    Example:
+        >>> import numpy as np
+        >>> from sign_language_tools.annotations.transforms import SegmentsToFrameLabels
+        >>> segments = np.array([[2, 4, 1], [6, 8, 2]])  # (M, 3)
+        >>> transform = SegmentsToFrameLabels()
+        >>> transform(segments)
+        array([0, 0, 1, 1, 1, 0, 2, 2, 2], dtype=int64)
     """
 
     def __init__(
@@ -27,9 +47,20 @@ class SegmentsToFrameLabels(Transform):
     def __call__(
         self, segments: np.ndarray, vector_size: int | None = None
     ) -> np.ndarray:
+        """Renders the segments as a label vector.
+
+        Args:
+            segments: Array of shape `(M, 2)` or `(M, 3)` containing the
+                start, end, and optionally the label of `M` segments.
+            vector_size: Overrides the `vector_size` passed to the
+                constructor for this call only.
+
+        Returns:
+            Label vector of shape `(vector_size,)`.
+        """
         size = vector_size if vector_size is not None else self.vector_size
         if size is None:
-            size = int(segments[:, 1].max()) if len(segments) else 0
+            size = int(segments[:, 1].max()) + 1 if len(segments) else 0
 
         labels = np.full(size, self.background_label, dtype=self.dtype)
         if len(segments) == 0:
@@ -48,9 +79,27 @@ class SegmentsToFrameLabels(Transform):
 
 
 class FrameLabelsToSegments(Transform):
-    """Inverse: contiguous runs of identical labels → (start, end, label) segments.
+    """Inverse of `SegmentsToFrameLabels`: groups a label vector into segments.
 
-    Background classes are excluded from the output. End is exclusive.
+    Contiguous runs of identical labels become `[start, end, label]`
+    segments, using the same inclusive-end convention as the rest of the
+    module (`[start, end]` covers frames `start, ..., end`). Runs whose
+    label is in `background_classes` are excluded from the output.
+
+    Args:
+        background_classes: Labels considered background; segments with
+            one of these labels are dropped from the output.
+        include_labels: If True, the output segments include the label as
+            a third column. If False, only `[start, end]` is returned.
+
+    Example:
+        >>> import numpy as np
+        >>> from sign_language_tools.annotations.transforms import FrameLabelsToSegments
+        >>> labels = np.array([0, 0, 1, 1, 1, 0, 2, 2, 2])
+        >>> transform = FrameLabelsToSegments()
+        >>> transform(labels)
+        array([[2, 4, 1],
+               [6, 8, 2]])
     """
 
     def __init__(
@@ -63,6 +112,16 @@ class FrameLabelsToSegments(Transform):
         self.include_labels = include_labels
 
     def __call__(self, labels: np.ndarray) -> np.ndarray:
+        """Groups the label vector into segments.
+
+        Args:
+            labels: Label vector of shape `(T,)`, where `T` is the number
+                of frames.
+
+        Returns:
+            Array of shape `(M, 3)`, or `(M, 2)` if `include_labels` is
+            False, containing the `M` non-background segments.
+        """
         if len(labels) == 0:
             cols = 3 if self.include_labels else 2
             return np.empty((0, cols), dtype=np.int64)

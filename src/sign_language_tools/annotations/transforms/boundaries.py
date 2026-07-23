@@ -34,52 +34,40 @@ class SegmentsToBoundaries(Transform):
     handle this if needed. Boundaries that fall entirely outside
     `[min_start, max_end]` after clamping are dropped.
 
-    Parameters
-    ----------
-    width : int, optional
-        Fixed boundary width in frames. Exactly one of `width` or
-        `relative_width` must be provided.
-    relative_width : float, optional
-        Boundary width as a fraction of each segment's length, rounded to
-        the nearest integer. Exactly one of `width` or `relative_width`
-        must be provided.
-    min_width : int, default 1
-        Lower bound on the boundary width, applied after `relative_width`
-        is resolved. Defaults to 1 so very short segments still produce a
-        visible boundary.
-    exclude_start : bool, default False
-        If True, do not emit start-boundaries.
-    exclude_end : bool, default False
-        If True, do not emit end-boundaries.
-    min_start : int or None, default 0
-        If not None, boundary starts are clamped to at least this value.
-        Typically 0 to keep boundaries inside the timeline.
-    max_end : int or None, default None
-        If not None, boundary ends are clamped to at most this value.
-        Set this to the sequence length minus one to keep boundaries inside
-        the timeline.
-    boundary_labels : tuple of (int, int), default (1, 1)
-        Labels assigned to (start-boundaries, end-boundaries) respectively.
-        Using distinct values (e.g. `(1, 2)`) lets downstream code tell the
-        two boundary types apart.
+    Args:
+        width: Fixed boundary width in frames. Exactly one of `width` or
+            `relative_width` must be provided.
+        relative_width: Boundary width as a fraction of each segment's
+            length, rounded to the nearest integer. Exactly one of
+            `width` or `relative_width` must be provided.
+        min_width: Lower bound on the boundary width, applied after
+            `relative_width` is resolved. Defaults to 1 so very short
+            segments still produce a visible boundary.
+        exclude_start: If True, do not emit start-boundaries.
+        exclude_end: If True, do not emit end-boundaries.
+        min_start: If not None, boundary starts are clamped to at least
+            this value. Typically 0 to keep boundaries inside the
+            timeline.
+        max_end: If not None, boundary ends are clamped to at most this
+            value. Set this to the sequence length minus one to keep
+            boundaries inside the timeline.
+        boundary_labels: Labels assigned to (start-boundaries,
+            end-boundaries) respectively. Using distinct values (e.g.
+            `(1, 2)`) lets downstream code tell the two boundary types
+            apart.
 
-    Returns
-    -------
-    np.ndarray of shape (n_boundaries, 3)
-        Each row is `[boundary_start, boundary_end, label]`, sorted by
-        `boundary_start`. The dtype matches the input dtype.
-
-    Examples
-    --------
-    >>> transform = SegmentsToBoundaries(width=4, boundary_labels=(1, 2))
-    >>> segments = np.array([[0, 6], [7, 9], [13, 16]])
-    >>> transform(segments)
-    array([[ 0,  1,  1],
-           [ 5,  8,  1],
-           [ 5,  8,  2],
-           [ 8, 11,  2],
-           [11, 14,  1],
-           [15, 18,  2]])
+    Example:
+        >>> import numpy as np
+        >>> from sign_language_tools.annotations.transforms import SegmentsToBoundaries
+        >>> segments = np.array([[0, 6], [7, 9], [13, 16]])  # (M, 2)
+        >>> transform = SegmentsToBoundaries(width=4, boundary_labels=(1, 2))
+        >>> transform(segments)
+        array([[ 0,  1,  1],
+               [ 5,  8,  1],
+               [ 5,  8,  2],
+               [ 8, 11,  2],
+               [11, 14,  1],
+               [15, 18,  2]])
     """
 
     def __init__(
@@ -115,6 +103,18 @@ class SegmentsToBoundaries(Transform):
         self.boundary_labels = boundary_labels
 
     def __call__(self, segments: np.ndarray) -> np.ndarray:
+        """Transforms segments into their transition boundaries.
+
+        Args:
+            segments: Array of shape `(M, 2)` or `(M, K)` with `K > 2`
+                containing at least the start and end of `M` segments;
+                extra columns are ignored.
+
+        Returns:
+            Array of shape `(M', 3)` where each row is
+            `[boundary_start, boundary_end, label]`, sorted by
+            `boundary_start`. The dtype matches the input dtype.
+        """
         # Always return a (0, 3) array for empty input: the output schema
         # is [start, end, label] regardless of the input's column count.
         if segments.shape[0] == 0:

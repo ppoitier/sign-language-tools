@@ -3,11 +3,6 @@ import numpy as np
 from sign_language_tools.core.transform import Transform
 
 
-import numpy as np
-
-from sign_language_tools.core.transform import Transform
-
-
 class RemoveOverlapping(Transform):
     """Remove overlap between segments and enforce a minimum frame gap.
 
@@ -18,6 +13,20 @@ class RemoveOverlapping(Transform):
     B.start - A.end <= min_gap. The boundary is placed near the midpoint
     of the overlap/touch region; when min_gap is odd, the extra empty
     frame falls on B's side.
+
+    Args:
+        min_gap: Minimum number of empty frames required between two
+            consecutive segments. Must be non-negative.
+
+    Example:
+        >>> import numpy as np
+        >>> from sign_language_tools.annotations.transforms import RemoveOverlapping
+        >>> segments = np.array([[2, 5], [6, 14], [12, 17]])  # (M, 2)
+        >>> transform = RemoveOverlapping(min_gap=1)
+        >>> transform(segments)
+        array([[ 2,  5],
+               [ 7, 13],
+               [15, 17]])
     """
 
     def __init__(self, min_gap: int = 0):
@@ -26,10 +35,12 @@ class RemoveOverlapping(Transform):
         self.min_gap = min_gap
 
     def __call__(self, segments: np.ndarray) -> np.ndarray:
-        """
+        """Removes overlap between the segments.
+
         Args:
-            segments: Array of shape (N, 2) or (N, K) with K > 2; only the
-                first two columns (start, end) are modified, extras pass through.
+            segments: Array of shape `(M, 2)` or `(M, K)` with `K > 2`; only
+                the first two columns (start, end) are modified, extra
+                columns pass through unchanged.
 
         Returns:
             Segments with overlaps resolved, sorted by start.
