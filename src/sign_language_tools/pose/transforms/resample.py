@@ -17,7 +17,7 @@ class Resample(Transform):
 
     Example:
         >>> import numpy as np
-        >>> from sign_language_tools.pose.transform import Resample
+        >>> from sign_language_tools.pose.transforms import Resample
         >>> pose_sequence = np.random.rand(10, 5, 2)  # (T, L, C)
         >>> transform = Resample(new_length=20)
         >>> transform(pose_sequence).shape
@@ -41,6 +41,8 @@ class Resample(Transform):
             The resampled pose sequence, of shape `(new_length, L, C)`.
         """
         t = pose_sequence.shape[0]
+        if t == self.new_length:
+            return pose_sequence
         x = np.linspace(0, t - 1, self.new_length)
         f = F.get_landmark_interpolation_function(pose_sequence, self.method)
         return f(x)
@@ -61,7 +63,7 @@ class RandomResample(Resample):
 
     Example:
         >>> import numpy as np
-        >>> from sign_language_tools.pose.transform import RandomResample
+        >>> from sign_language_tools.pose.transforms import RandomResample
         >>> pose_sequence = np.random.rand(10, 5, 2)  # (T, L, C)
         >>> transform = RandomResample(min_length=5, max_length=15)
         >>> new_pose_sequence = transform(pose_sequence)
